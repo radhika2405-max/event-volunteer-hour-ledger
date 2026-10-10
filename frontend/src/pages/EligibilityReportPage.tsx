@@ -83,17 +83,46 @@ export const EligibilityReportPage: React.FC = () => {
   };
 
   const handleExportCSV = () => {
-    const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (academicYear) params.append('academic_year', academicYear);
-    if (programme) params.append('programme', programme);
-    if (status) params.append('status', status);
-    if (eventId) params.append('event_id', eventId);
-    if (clubId) params.append('club_id', clubId);
-    if (minHours) params.append('min_hours', minHours);
-    params.append('export', 'csv');
+    const headers = [
+      'Registration Number',
+      'Student Name',
+      'Programme',
+      'Academic Year',
+      'Approved Hours',
+      'Pending Hours',
+      'Events Count',
+      'Threshold (Hours)',
+      'Remaining Hours',
+      'Eligibility Status',
+      'Certificate Number',
+      'Issued Date',
+    ];
 
-    window.open(`/api/v1/reports/certificate-eligibility?${params.toString()}`, '_blank');
+    const rows = items.map((x: any) => [
+      `"${x.university_registration_number || ''}"`,
+      `"${(x.student_name || '').replace(/"/g, '""')}"`,
+      `"${(x.programme || '').replace(/"/g, '""')}"`,
+      `"${x.academic_year || ''}"`,
+      x.total_approved_hours ?? 0,
+      x.total_pending_hours ?? 0,
+      x.approved_events_count ?? 0,
+      x.threshold_hours ?? 20,
+      x.remaining_hours ?? 0,
+      `"${x.eligibility_state || ''}"`,
+      `"${x.certificate_number || 'N/A'}"`,
+      `"${x.certificate_issued_at ? x.certificate_issued_at.slice(0, 10) : 'N/A'}"`,
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `certificate_eligibility_report_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleIssueCertificate = async (studentId: number) => {
