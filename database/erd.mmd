@@ -1,0 +1,137 @@
+erDiagram
+    USERS ||--o| STUDENTS : "profile mapped to"
+    USERS ||--o{ EVENTS : "creates"
+    USERS ||--o{ VOLUNTEER_HOUR_ENTRIES : "submits / reviews"
+    USERS ||--o{ CERTIFICATES : "issues"
+    USERS ||--o{ AUDIT_LOGS : "performs actions recorded in"
+    
+    CLUBS ||--o{ CLUBS : "parent club of (AADIKALA -> Sub-clubs)"
+    CLUBS ||--o{ EVENT_SUBCLUBS : "participates in"
+    EVENTS ||--o{ EVENT_SUBCLUBS : "involves"
+    
+    EVENTS ||--o{ EVENT_VOLUNTEERS : "registers"
+    STUDENTS ||--o{ EVENT_VOLUNTEERS : "volunteers for"
+    CLUBS ||--o{ EVENT_VOLUNTEERS : "assigns role in"
+    
+    EVENT_VOLUNTEERS ||--o{ VOLUNTEER_HOUR_ENTRIES : "contains logged intervals"
+    
+    CERTIFICATE_POLICIES ||--o{ CERTIFICATES : "governs issuance of"
+    STUDENTS ||--o{ CERTIFICATES : "receives"
+    
+    EVENTS ||--o{ CERTIFICATE_POLICIES : "scopes (optional)"
+    CLUBS ||--o{ CERTIFICATE_POLICIES : "scopes (optional)"
+
+    USERS {
+        int user_id PK
+        string full_name
+        string email UK
+        string password_hash
+        string role "admin|coordinator|club_lead|approver|volunteer"
+        string account_status
+        datetime created_at
+        datetime updated_at
+    }
+
+    STUDENTS {
+        int student_id PK
+        int user_id FK,UK
+        string university_registration_number UK
+        string programme
+        string academic_year
+        string section
+        string contact_email
+        string status
+    }
+
+    CLUBS {
+        int club_id PK
+        string club_name UK
+        int parent_club_id FK "nullable"
+        string description
+        string status
+    }
+
+    EVENTS {
+        int event_id PK
+        string event_name
+        string event_code UK
+        string description
+        string venue
+        datetime start_datetime
+        datetime end_datetime
+        string event_status
+        int created_by FK
+    }
+
+    EVENT_SUBCLUBS {
+        int event_id PK,FK
+        int club_id PK,FK
+    }
+
+    EVENT_VOLUNTEERS {
+        int participation_id PK
+        int event_id FK
+        int student_id FK
+        int assigned_club_id FK
+        string assigned_role
+        string registration_status
+        datetime registered_at
+    }
+
+    VOLUNTEER_HOUR_ENTRIES {
+        int hour_entry_id PK
+        int participation_id FK
+        date work_date
+        time start_time
+        time end_time
+        int break_minutes
+        int claimed_minutes
+        int verified_minutes
+        string submission_status "pending|approved|rejected|corrected"
+        int submitted_by FK
+        int reviewed_by FK
+        datetime reviewed_at
+        string rejection_reason
+        string correction_notes
+    }
+
+    CERTIFICATE_POLICIES {
+        int policy_id PK
+        string policy_name
+        int minimum_approved_minutes
+        string scope_type "all_events|event|club"
+        int applicable_event_id FK
+        int applicable_club_id FK
+        date effective_from
+        date effective_until
+        boolean requires_faculty_approval
+        string status
+        int created_by FK
+    }
+
+    CERTIFICATES {
+        int certificate_id PK
+        int student_id FK
+        int policy_id FK
+        string certificate_number UK
+        int eligibility_snapshot_minutes
+        datetime issued_at
+        int issued_by FK
+        string certificate_status "issued|revoked|reissued"
+        string revocation_reason
+        string verification_token UK
+        string pdf_path
+    }
+
+    AUDIT_LOGS {
+        int audit_id PK
+        int actor_user_id FK
+        string action
+        string entity_type
+        int entity_id
+        json before_state
+        json after_state
+        string reason
+        datetime timestamp
+        string request_id
+    }
