@@ -82,7 +82,7 @@ async function request(endpoint: string, options: RequestInit = {}) {
 
     if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/verify/')) {
       clearToken();
-      window.location.href = '/login';
+      window.location.hash = '#/login';
       throw new Error('Session expired');
     }
 
