@@ -89,10 +89,10 @@ def get_student_detail(student_id):
             .scalar()
 
         data = student.to_dict()
-        data['total_approved_minutes'] = approved_mins
-        data['total_approved_hours'] = round(approved_mins / 60.0, 2)
-        data['total_pending_minutes'] = pending_mins
-        data['total_pending_hours'] = round(pending_mins / 60.0, 2)
+        data['total_approved_minutes'] = int(approved_mins or 0)
+        data['total_approved_hours'] = round(float(approved_mins or 0) / 60.0, 2)
+        data['total_pending_minutes'] = int(pending_mins or 0)
+        data['total_pending_hours'] = round(float(pending_mins or 0) / 60.0, 2)
         data['participations'] = part_list
 
         return jsonify(data), 200

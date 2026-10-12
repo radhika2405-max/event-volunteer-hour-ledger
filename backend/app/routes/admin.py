@@ -116,25 +116,25 @@ def update_policy(policy_id):
 
 
 @admin_bp.route('/dashboard-stats', methods=['GET'])
-@role_required(['admin', 'coordinator', 'approver', 'club_lead'])
+@role_required(['admin', 'coordinator', 'approver', 'club_lead', 'volunteer'])
 def get_dashboard_stats():
     with get_db() as session:
-        total_volunteers = session.query(func.count(Student.student_id)).scalar()
-        total_events = session.query(func.count(Event.event_id)).scalar()
+        total_volunteers = session.query(func.count(Student.student_id)).scalar() or 0
+        total_events = session.query(func.count(Event.event_id)).scalar() or 0
 
         total_approved_minutes = session.query(func.coalesce(func.sum(VolunteerHourEntry.verified_minutes), 0))\
-            .filter(VolunteerHourEntry.submission_status.in_(['approved', 'corrected'])).scalar()
+            .filter(VolunteerHourEntry.submission_status.in_(['approved', 'corrected'])).scalar() or 0
 
         pending_hours_count = session.query(func.count(VolunteerHourEntry.hour_entry_id))\
-            .filter(VolunteerHourEntry.submission_status == 'pending').scalar()
+            .filter(VolunteerHourEntry.submission_status == 'pending').scalar() or 0
 
         total_certs_issued = session.query(func.count(Certificate.certificate_id))\
-            .filter(Certificate.certificate_status == 'issued').scalar()
+            .filter(Certificate.certificate_status == 'issued').scalar() or 0
 
         return jsonify({
-            'total_volunteers': total_volunteers,
-            'total_events': total_events,
-            'total_approved_hours': round(total_approved_minutes / 60.0, 2),
-            'pending_hour_approvals': pending_hours_count,
-            'certificates_issued': total_certs_issued
+            'total_volunteers': int(total_volunteers),
+            'total_events': int(total_events),
+            'total_approved_hours': round(float(total_approved_minutes) / 60.0, 2),
+            'pending_hour_approvals': int(pending_hours_count),
+            'certificates_issued': int(total_certs_issued)
         }), 200
