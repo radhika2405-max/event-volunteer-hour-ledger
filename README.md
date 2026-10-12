@@ -1,8 +1,18 @@
-# Event Volunteer Hour Ledger
+# ADIKALA LEDGER — Event Volunteer Hour Ledger
 ### Volunteer Hours, Verification & Certificate Eligibility Management System
 **Institution:** CHRIST (Deemed to be University), Delhi NCR Campus | School of Sciences  
-**Primary Organization:** AADIKALA (Parent Club)  
+**Parent Organization:** ADIKALA (Izhaar Kala Ka)  
 **Constituent Sub-Clubs:** Dance, Emcee, Technical, Creative, Music, Hospitality  
+
+---
+
+## 🚀 Live Demo & Submission Access
+
+The project can be opened and evaluated on **any laptop, tablet, or phone** without any local setup:
+
+👉 **Live Web Application:** [https://radhika2405-max.github.io/event-volunteer-hour-ledger/](https://radhika2405-max.github.io/event-volunteer-hour-ledger/)  
+👉 **Public Certificate Verifier:** [https://radhika2405-max.github.io/event-volunteer-hour-ledger/#/verify](https://radhika2405-max.github.io/event-volunteer-hour-ledger/#/verify)  
+👉 **1-Click Offline Preview:** Double-click `start_preview.bat` (Windows) or `./start_preview.sh` (macOS/Linux)  
 
 ---
 
