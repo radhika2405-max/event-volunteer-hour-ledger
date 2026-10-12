@@ -3,7 +3,7 @@
 **Institution:** CHRIST (Deemed to be University), Delhi NCR Campus | School of Sciences  
 **Academic Year:** 2025–2026 | **Course:** Database Management Systems (DBMS)  
 **Author / Presenter:** Radhika (and Team)  
-**Student Organization:** AADIKALA & 6 Sub-Clubs (Dance, Emcee, Technical, Creative, Music, Hospitality)  
+**Student Organization:** ADIKALA & 6 Sub-Clubs (Dance, Emcee, Technical, Creative, Music, Hospitality)  
 **Live Hosted Application:** [https://radhika2405-max.github.io/event-volunteer-hour-ledger/](https://radhika2405-max.github.io/event-volunteer-hour-ledger/)
 
 ---
@@ -28,13 +28,13 @@
 │                                       HEADER BANNER                                              │
 │  CHRIST (Deemed to be University) • Delhi NCR Campus • School of Sciences                        │
 │  EVENT VOLUNTEER HOUR LEDGER: A 3NF Relational DBMS for University Volunteer Hour Governance      │
-│  Author: Radhika | AADIKALA & 6 Sub-Clubs | Live: radhika2405-max.github.io/event-volunteer-hour-ledger │
+│  Author: Radhika | ADIKALA & 6 Sub-Clubs | Live: radhika2405-max.github.io/event-volunteer-hour-ledger │
 ├───────────────────────────────┬──────────────────────────────────┬───────────────────────────────┤
 │           COLUMN 1            │             COLUMN 2             │           COLUMN 3            │
 │   Context, Problem & Ledger   │   Relational Schema & Normal.    │   ACID, Indexes & Live Eval   │
 ├───────────────────────────────┼──────────────────────────────────┼───────────────────────────────┤
 │ 1. Real-World Context         │ 4. 3-Tier System Architecture    │ 7. Active Database Triggers   │
-│    • AADIKALA & 6 Sub-clubs   │    • React 18, Flask, MySQL 8.0  │    • Workflow rules (SQL 45000│
+│    • ADIKALA & 6 Sub-clubs    │    • React 18, Flask, MySQL 8.0  │    • Workflow rules (SQL 45000│
 │    • Co-hosted campus fests   │                                  │    • Automated JSON audit logs│
 │                               │ 5. 10 Normalized Relations       │                               │
 │ 2. The Spreadsheet Crisis     │    • Recursive clubs self-join   │ 8. Stored Procedures & ACID   │
@@ -63,7 +63,7 @@ When professors, judges, or fellow students walk up to your research poster duri
 > **"Hello! Welcome to our research poster on the Event Volunteer Hour Ledger.**
 >
 > **The Problem:**  
-> At CHRIST University, our student wing AADIKALA coordinates hundreds of volunteers across six specialized sub-clubs—Dance, Emcee, Technical, Creative, Music, and Hospitality. Traditionally, colleges track these hours on shared spreadsheets. But spreadsheets suffer from four critical database flaws: mutable total hours that get overwritten during concurrent edits, join inflation that triples volunteer hours during co-hosted fests like SUNERGOS, students claiming certificates before faculty review, and a complete lack of change-data audit logging.
+> At CHRIST University, our student wing **ADIKALA** coordinates hundreds of volunteers across six specialized sub-clubs—Dance, Emcee, Technical, Creative, Music, and Hospitality. Traditionally, colleges track these hours on shared spreadsheets. But spreadsheets suffer from four critical database flaws: mutable total hours that get overwritten during concurrent edits, join inflation that triples volunteer hours during co-hosted fests like SUNERGOS, students claiming certificates before faculty review, and a complete lack of change-data audit logging.
 >
 > **Our Solution — The Ledger Paradigm:**  
 > We engineered an enterprise-grade relational database in MySQL 8.0. Following the **Ledger Paradigm**, our `students` table does *not* contain a `total_hours` column. Instead, every work interval is an immutable record, and hours are dynamically aggregated through authoritative SQL views using conditional aggregation.

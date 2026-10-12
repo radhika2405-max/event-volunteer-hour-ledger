@@ -135,7 +135,7 @@ def build_poster_pdf(output_path):
         Paragraph("CHRIST (DEEMED TO BE UNIVERSITY) • DELHI NCR CAMPUS • SCHOOL OF SCIENCES", ParagraphStyle('InstHead', parent=poster_meta_style, fontSize=13, fontName='Helvetica-Bold', textColor=colors.HexColor('#93c5fd'), spaceAfter=4)),
         Paragraph("EVENT VOLUNTEER HOUR LEDGER", poster_title_style),
         Paragraph("A Relational Database Management System for Service Hour Accounting, Faculty Verification &amp; Certificate Eligibility", poster_subtitle_style),
-        Paragraph("<b>Author / Presenter:</b> Radhika (and Team) &nbsp;&bull;&nbsp; <b>Organization:</b> AADIKALA (Dance, Emcee, Technical, Creative, Music, Hospitality Sub-Clubs) &nbsp;&bull;&nbsp; <b>Live App:</b> <font color='#fde68a'><u>https://radhika2405-max.github.io/event-volunteer-hour-ledger/</u></font>", poster_meta_style)
+        Paragraph("<b>Author / Presenter:</b> Radhika (and Team) &nbsp;&bull;&nbsp; <b>Organization:</b> ADIKALA (Dance, Emcee, Technical, Creative, Music, Hospitality Sub-Clubs) &nbsp;&bull;&nbsp; <b>Live App:</b> <font color='#fde68a'><u>https://radhika2405-max.github.io/event-volunteer-hour-ledger/</u></font>", poster_meta_style)
     ]
     
     t_header = Table([[header_content]], colWidths=[POSTER_WIDTH - (2 * margin)])
@@ -182,7 +182,7 @@ def build_poster_pdf(output_path):
     col1_cards.append(make_card(
         "1. Real-World Context &amp; The Spreadsheet Crisis",
         [
-            Paragraph("<b>Institutional Domain:</b> CHRIST University's student wing <b>AADIKALA</b> coordinates student leadership across 6 specialized sub-clubs: Dance, Emcee, Technical, Creative, Music, and Hospitality. Festivals like <i>SUNERGOS</i> and <i>TARANG</i> mobilize hundreds of volunteer service hours.", body_style),
+            Paragraph("<b>Institutional Domain:</b> CHRIST University's student wing <b>ADIKALA</b> coordinates student leadership across 6 specialized sub-clubs: Dance, Emcee, Technical, Creative, Music, and Hospitality. Festivals like <i>SUNERGOS</i> and <i>TARANG</i> mobilize hundreds of volunteer service hours.", body_style),
             Paragraph("<b>The 4 Fatal Spreadsheet Flaws:</b>", highlight_style),
             Paragraph("<b>• Mutable Update Anomaly:</b> Spreadsheets store a single mutable 'Total Hours' cell; concurrent edits overwrite historical totals without a paper trail.", bullet_style),
             Paragraph("<b>• Multi-Club Join Inflation:</b> Co-hosted events associate multiple sub-clubs; unnormalized queries multiply volunteer hours by the club count.", bullet_style),
@@ -246,7 +246,7 @@ def build_poster_pdf(output_path):
                 [Paragraph("<b>Relation</b>", code_style), Paragraph("<b>Key Attributes</b>", code_style), Paragraph("<b>Cardinality &amp; Purpose</b>", code_style)],
                 [Paragraph("<code>users</code>", code_style), Paragraph("<code>user_id (PK), email, role</code>", code_style), Paragraph("1:1 with students; login identity &amp; RBAC.", code_style)],
                 [Paragraph("<code>students</code>", code_style), Paragraph("<code>student_id (PK), user_id (FK)</code>", code_style), Paragraph("Academic registry; reg number &amp; programme.", code_style)],
-                [Paragraph("<code>clubs</code>", code_style), Paragraph("<code>club_id (PK), parent_club_id</code>", code_style), Paragraph("1:N Recursive Self-Join (AADIKALA &amp; sub-clubs).", code_style)],
+                [Paragraph("<code>clubs</code>", code_style), Paragraph("<code>club_id (PK), parent_club_id</code>", code_style), Paragraph("1:N Recursive Self-Join (ADIKALA &amp; sub-clubs).", code_style)],
                 [Paragraph("<code>events</code>", code_style), Paragraph("<code>event_id (PK), event_code</code>", code_style), Paragraph("1:N with participation; campus event logs.", code_style)],
                 [Paragraph("<code>event_subclubs</code>", code_style), Paragraph("<code>(event_id, club_id) (PK)</code>", code_style), Paragraph("M:N junction linking events to collaborating clubs.", code_style)],
                 [Paragraph("<code>event_volunteers</code>", code_style), Paragraph("<code>participation_id (PK)</code>", code_style), Paragraph("M:N student-event associative entity; UNIQUE.", code_style)],
