@@ -154,13 +154,15 @@ export const HourLedgerPage: React.FC = () => {
     return result;
   }, [entries, statusFilter, searchQuery]);
 
-  const statusOptions = [
-    { id: '', label: 'All' },
-    { id: 'pending', label: 'Pending' },
-    { id: 'approved', label: 'Approved' },
-    { id: 'rejected', label: 'Rejected' },
-    { id: 'corrected', label: 'Corrected' },
-  ];
+  const statusOptions = useMemo(() => {
+    return [
+      { id: '', label: 'All', count: entries.length },
+      { id: 'approved', label: 'Approved', count: entries.filter(e => (e.submission_status || '').trim().toLowerCase() === 'approved').length },
+      { id: 'pending', label: 'Pending', count: entries.filter(e => (e.submission_status || '').trim().toLowerCase() === 'pending').length },
+      { id: 'rejected', label: 'Rejected', count: entries.filter(e => (e.submission_status || '').trim().toLowerCase() === 'rejected').length },
+      { id: 'corrected', label: 'Corrected', count: entries.filter(e => (e.submission_status || '').trim().toLowerCase() === 'corrected').length },
+    ];
+  }, [entries]);
 
   return (
     <div className="space-y-6">
@@ -230,20 +232,25 @@ export const HourLedgerPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-slate-500" />
             <span className="text-xs font-bold text-slate-700 uppercase">Status:</span>
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {statusOptions.map(st => {
                 const isActive = statusFilter.toLowerCase() === st.id.toLowerCase();
                 return (
                   <button
                     key={st.id}
                     onClick={() => setStatusFilter(st.id)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition flex items-center gap-1.5 ${
                       isActive
                         ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-400/30'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                     }`}
                   >
-                    {st.label}
+                    <span>{st.label}</span>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      isActive ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-600'
+                    }`}>
+                      {st.count}
+                    </span>
                   </button>
                 );
               })}

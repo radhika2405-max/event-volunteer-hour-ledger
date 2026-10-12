@@ -5,7 +5,25 @@ from flask_jwt_extended import jwt_required
 from app.db import get_db
 from app.permissions.rbac import role_required, get_current_user_context
 from sqlalchemy import text
-from datetime import datetime
+from datetime import datetime, date, timedelta
+from decimal import Decimal
+
+def serialize_row(row_dict):
+    out = {}
+    for k, v in row_dict.items():
+        if isinstance(v, (datetime, date)):
+            out[k] = v.isoformat()
+        elif isinstance(v, timedelta):
+            total_sec = int(v.total_seconds())
+            h = total_sec // 3600
+            m = (total_sec % 3600) // 60
+            s = total_sec % 60
+            out[k] = f"{h:02d}:{m:02d}:{s:02d}"
+        elif isinstance(v, Decimal):
+            out[k] = float(v)
+        else:
+            out[k] = v
+    return out
 
 reports_bp = Blueprint('reports', __name__, url_prefix='/api/v1/reports')
 
@@ -107,7 +125,7 @@ def certificate_eligibility_report():
 
     with get_db() as session:
         result = session.execute(text(sql), params)
-        items = [dict(row._mapping) for row in result]
+        items = [serialize_row(dict(row._mapping)) for row in result]
 
         # Calculate summary metric counts
         summary = {
@@ -166,7 +184,7 @@ def certificate_eligibility_report():
 def event_summary_report():
     with get_db() as session:
         result = session.execute(text("SELECT * FROM vw_event_volunteer_summary ORDER BY start_datetime DESC"))
-        items = [dict(row._mapping) for row in result]
+        items = [serialize_row(dict(row._mapping)) for row in result]
         return jsonify({'items': items, 'total': len(items)}), 200
 
 
@@ -174,15 +192,21 @@ def event_summary_report():
 @role_required(['admin', 'coordinator', 'approver', 'club_lead'])
 def club_summary_report():
     with get_db() as session:
-        result = session.execute(text("SELECT * FROM vw_club_volunteer_summary ORDER BY verified_hours_contributed DESC"))
-        items = [dict(row._mapping) for row in result]
+        result = session.execute(text("SELECT * FROM vw_club_volunteer_summary ORDER BY total_approved_hours DESC"))
+        items = [serialize_row(dict(row._mapping)) for row in result]
         return jsonify({'items': items, 'total': len(items)}), 200
 
 
 @reports_bp.route('/pending-approvals', methods=['GET'])
 @role_required(['admin', 'coordinator', 'approver'])
 def pending_approvals_report():
-    with get_db() as session:
-        result = session.execute(text("SELECT * FROM vw_pending_hour_approvals ORDER BY submitted_at ASC"))
-        items = [dict(row._mapping) for row in result]
-        return jsonify({'items': items, 'total': len(items)}), 200
+    try:
+        with get_db() as session:
+            result = session.execute(text("SELECT * FROM vw_pending_hour_approvals ORDER BY submitted_at ASC"))
+            items = [serialize_row(dict(row._mapping)) for row in result]
+            return jsonify({'items': items, 'total': len(items)}), 200
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+

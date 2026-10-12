@@ -8,13 +8,14 @@ import { api, getCurrentUser } from '../services/api';
 
 export const EligibilityReportPage: React.FC = () => {
   const [reportData, setReportData] = useState<any>(null);
+  const [allStudents, setAllStudents] = useState<any[]>([]);
+  const [participations, setParticipations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
   const [clubs, setClubs] = useState<any[]>([]);
 
   // Filter state
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [academicYear, setAcademicYear] = useState('');
   const [programme, setProgramme] = useState('');
   const [status, setStatus] = useState('');
@@ -29,29 +30,20 @@ export const EligibilityReportPage: React.FC = () => {
   const user = getCurrentUser();
   const canIssue = ['admin', 'approver'].includes(user?.role);
 
-  // Debounce search text (300ms) to ensure smooth typing while maintaining live updates
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
-
   const fetchReport = async () => {
     try {
       setLoading(true);
-      const params: Record<string, string> = {};
-      const cleanSearch = (debouncedSearch || '').trim();
-      if (cleanSearch) params.search = cleanSearch;
-      if (academicYear) params.academic_year = academicYear;
-      if (programme) params.programme = programme;
-      if (status) params.status = status;
-      if (eventId) params.event_id = eventId;
-      if (clubId) params.club_id = clubId;
-      if (minHours) params.min_hours = minHours;
-
-      const data = await api.getCertificateEligibilityReport(params);
+      const [data, partRes, evRes, clRes] = await Promise.all([
+        api.getCertificateEligibilityReport({}),
+        api.getParticipations().catch(() => ({ items: [] })),
+        api.getEvents().catch(() => ({ items: [] })),
+        api.getClubs().catch(() => ({ items: [] })),
+      ]);
       setReportData(data);
+      setAllStudents(data.items || []);
+      setParticipations(partRes.items || []);
+      setEvents(evRes.items || []);
+      setClubs(clRes.items || []);
     } catch (err: any) {
       console.error(err);
     } finally {
@@ -60,31 +52,11 @@ export const EligibilityReportPage: React.FC = () => {
   };
 
   useEffect(() => {
-    async function loadMeta() {
-      try {
-        const [evRes, clRes] = await Promise.all([
-          api.getEvents(),
-          api.getClubs(),
-        ]);
-        setEvents(evRes.items || []);
-        setClubs(clRes.items || []);
-      } catch (e) {}
-    }
-    loadMeta();
-  }, []);
-
-  useEffect(() => {
     fetchReport();
-  }, [debouncedSearch, academicYear, programme, status, eventId, clubId, minHours]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setDebouncedSearch(search);
-  };
+  }, []);
 
   const handleResetFilters = () => {
     setSearch('');
-    setDebouncedSearch('');
     setAcademicYear('');
     setProgramme('');
     setStatus('');
@@ -151,12 +123,11 @@ export const EligibilityReportPage: React.FC = () => {
     }
   };
 
-  const rawItems = reportData?.items || [];
-
   // Instant multi-criteria displayed items computation
   const displayedItems = useMemo(() => {
-    let result = rawItems;
+    let result = allStudents;
 
+    // 1. Live instant search by student name or registration number
     const cleanSearch = (search || '').trim().toLowerCase();
     if (cleanSearch) {
       result = result.filter((x: any) =>
@@ -164,12 +135,18 @@ export const EligibilityReportPage: React.FC = () => {
         (x.university_registration_number || '').toLowerCase().includes(cleanSearch)
       );
     }
+
+    // 2. Academic Year Filter
     if (academicYear) {
       result = result.filter((x: any) => x.academic_year === academicYear);
     }
+
+    // 3. Programme Filter
     if (programme) {
       result = result.filter((x: any) => (x.programme || '').trim().toLowerCase() === programme.trim().toLowerCase());
     }
+
+    // 4. Status Filter
     if (status) {
       const sClean = status.trim().toLowerCase();
       result = result.filter((x: any) => {
@@ -192,26 +169,50 @@ export const EligibilityReportPage: React.FC = () => {
         return itemState === sClean;
       });
     }
+
+    // 5. Event Filter (via participations mapping)
+    if (eventId) {
+      const eId = parseInt(eventId, 10);
+      const studentIdsInEvent = new Set(
+        participations.filter((p: any) => p.event_id === eId).map((p: any) => p.student_id)
+      );
+      result = result.filter((x: any) => studentIdsInEvent.has(x.student_id));
+    }
+
+    // 6. Sub-club Filter (via participations & club hierarchy)
+    if (clubId) {
+      const cId = parseInt(clubId, 10);
+      const childClubs = clubs.filter((c: any) => c.parent_club_id === cId).map((c: any) => c.club_id);
+      const targetClubIds = new Set([cId, ...childClubs]);
+      const studentIdsInClub = new Set(
+        participations.filter((p: any) => targetClubIds.has(p.assigned_club_id)).map((p: any) => p.student_id)
+      );
+      result = result.filter((x: any) => studentIdsInClub.has(x.student_id));
+    }
+
+    // 7. Minimum Approved Hours Filter
     if (minHours) {
       const mh = parseFloat(minHours);
       if (!isNaN(mh)) {
         result = result.filter((x: any) => (x.total_approved_hours || 0) >= mh);
       }
     }
+
     return result;
-  }, [rawItems, search, academicYear, programme, status, minHours]);
+  }, [allStudents, search, academicYear, programme, status, eventId, clubId, minHours, participations, clubs]);
 
   const items = displayedItems;
 
+  // Authoritative cohort KPI summary metrics (computed from entire cohort)
   const summary = useMemo(() => {
     return {
-      total_students: displayedItems.length,
-      eligible_count: displayedItems.filter((x: any) => ((x.eligibility_state || '').startsWith('Eligible') || x.eligibility_state === 'Certificate Issued')).length,
-      ineligible_count: displayedItems.filter((x: any) => x.eligibility_state === 'Not Eligible').length,
-      pending_review_count: displayedItems.filter((x: any) => x.eligibility_state === 'Pending Hours Review').length,
-      issued_count: displayedItems.filter((x: any) => x.eligibility_state === 'Certificate Issued').length,
+      total_students: allStudents.length,
+      eligible_count: allStudents.filter((x: any) => ((x.eligibility_state || '').startsWith('Eligible') || x.eligibility_state === 'Certificate Issued')).length,
+      ineligible_count: allStudents.filter((x: any) => x.eligibility_state === 'Not Eligible').length,
+      pending_review_count: allStudents.filter((x: any) => x.eligibility_state === 'Pending Hours Review').length,
+      issued_count: allStudents.filter((x: any) => x.eligibility_state === 'Certificate Issued').length,
     };
-  }, [displayedItems]);
+  }, [allStudents]);
 
   const metadata = reportData?.report_metadata;
 
@@ -274,7 +275,9 @@ export const EligibilityReportPage: React.FC = () => {
           }`}
         >
           <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Filtered Volunteers</p>
-          <p className="text-xl font-bold text-slate-900 mt-0.5">{summary.total_students}</p>
+          <p className="text-xl font-bold text-slate-900 mt-0.5">
+            {displayedItems.length} <span className="text-xs font-semibold text-slate-400">/ {allStudents.length}</span>
+          </p>
         </button>
 
         <button
@@ -361,19 +364,28 @@ export const EligibilityReportPage: React.FC = () => {
           </button>
         </div>
 
-        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <form onSubmit={(e) => e.preventDefault()} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
           {/* Search */}
           <div className="lg:col-span-2">
             <label className="block text-[11px] font-bold text-slate-600 mb-1">Search Student</label>
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Name or Reg. Number..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full pl-8 pr-7 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           </div>
 
@@ -456,6 +468,56 @@ export const EligibilityReportPage: React.FC = () => {
             </select>
           </div>
         </form>
+
+        {/* Active Filter Pills Bar */}
+        {(status || search || academicYear || programme || eventId || clubId || minHours) && (
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+            <span className="text-[11px] font-bold text-slate-500 uppercase">Active Filters:</span>
+            {status && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                Status: {status}
+                <button type="button" onClick={() => setStatus('')} className="hover:text-blue-950 font-bold ml-0.5">✕</button>
+              </span>
+            )}
+            {search && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                Search: "{search}"
+                <button type="button" onClick={() => setSearch('')} className="hover:text-slate-950 font-bold ml-0.5">✕</button>
+              </span>
+            )}
+            {programme && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                Prog: {programme}
+                <button type="button" onClick={() => setProgramme('')} className="hover:text-purple-950 font-bold ml-0.5">✕</button>
+              </span>
+            )}
+            {academicYear && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                Year: {academicYear}
+                <button type="button" onClick={() => setAcademicYear('')} className="hover:text-emerald-950 font-bold ml-0.5">✕</button>
+              </span>
+            )}
+            {eventId && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                Event: {events.find(e => String(e.event_id) === String(eventId))?.event_name || eventId}
+                <button type="button" onClick={() => setEventId('')} className="hover:text-amber-950 font-bold ml-0.5">✕</button>
+              </span>
+            )}
+            {clubId && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">
+                Wing: {clubs.find(c => String(c.club_id) === String(clubId))?.club_name?.replace(' Sub-club', '') || clubId}
+                <button type="button" onClick={() => setClubId('')} className="hover:text-indigo-950 font-bold ml-0.5">✕</button>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="text-xs text-rose-600 hover:text-rose-800 font-semibold underline ml-1 cursor-pointer"
+            >
+              Clear All Filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Applied Scope Badge Bar */}

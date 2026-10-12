@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { 
   Users, Search, Filter, Plus, CheckCircle, Clock, 
   ExternalLink, UserCheck, Shield, ChevronRight, X 
@@ -28,24 +28,13 @@ export const VolunteersPage: React.FC = () => {
   const user = getCurrentUser();
   const isAdmin = user?.role === 'admin';
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
+  const [allStudents, setAllStudents] = useState<any[]>([]);
 
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const params: any = {};
-      const cleanSearch = (debouncedSearch || '').trim();
-      if (cleanSearch) params.search = cleanSearch;
-      if (programme) params.programme = programme;
-      if (academicYear) params.academic_year = academicYear;
-
-      const res = await api.getStudents(params);
-      setStudents(res.items || []);
+      const res = await api.getStudents({});
+      setAllStudents(res.items || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -55,12 +44,26 @@ export const VolunteersPage: React.FC = () => {
 
   useEffect(() => {
     loadStudents();
-  }, [debouncedSearch, programme, academicYear]);
+  }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setDebouncedSearch(search);
-  };
+  const displayedStudents = useMemo(() => {
+    let result = allStudents;
+    const cleanSearch = (search || '').trim().toLowerCase();
+    if (cleanSearch) {
+      result = result.filter(s =>
+        (s.full_name || '').toLowerCase().includes(cleanSearch) ||
+        (s.university_registration_number || '').toLowerCase().includes(cleanSearch) ||
+        (s.email || '').toLowerCase().includes(cleanSearch)
+      );
+    }
+    if (programme) {
+      result = result.filter(s => (s.programme || '').trim().toLowerCase() === programme.trim().toLowerCase());
+    }
+    if (academicYear) {
+      result = result.filter(s => s.academic_year === academicYear);
+    }
+    return result;
+  }, [allStudents, search, programme, academicYear]);
 
   const openStudentDetail = async (id: number) => {
     setStudentDetailLoading(true);
@@ -124,7 +127,7 @@ export const VolunteersPage: React.FC = () => {
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full sm:w-auto flex-1 max-w-md">
+        <form onSubmit={(e) => e.preventDefault()} className="flex items-center gap-2 w-full sm:w-auto flex-1 max-w-md">
           <div className="relative w-full">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
             <input
@@ -176,10 +179,18 @@ export const VolunteersPage: React.FC = () => {
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
             <p className="text-xs text-slate-500">Loading student directory...</p>
           </div>
-        ) : students.length === 0 ? (
+        ) : displayedStudents.length === 0 ? (
           <div className="p-12 text-center text-slate-400">
             <Users className="w-10 h-10 mx-auto mb-2 opacity-40" />
             <p className="text-sm font-semibold text-slate-700">No Volunteer Profiles Found</p>
+            {(search || programme || academicYear) && (
+              <button
+                onClick={() => { setSearch(''); setProgramme(''); setAcademicYear(''); }}
+                className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-semibold"
+              >
+                Clear filters to show all volunteers
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -197,7 +208,7 @@ export const VolunteersPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {students.map(s => (
+                {displayedStudents.map(s => (
                   <tr key={s.student_id} className="hover:bg-slate-50/70 transition">
                     <td className="py-3.5 px-4 font-mono font-semibold text-slate-900">
                       {s.university_registration_number}

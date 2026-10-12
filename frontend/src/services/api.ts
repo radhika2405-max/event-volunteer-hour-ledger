@@ -251,7 +251,24 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
       };
     }
 
-    return { items: store.students, total: store.students.length };
+    let items = store.students;
+    const searchParam = (queryParams.get('search') || '').trim().toLowerCase();
+    if (searchParam) {
+      items = items.filter((s: any) =>
+        (s.full_name || '').toLowerCase().includes(searchParam) ||
+        (s.university_registration_number || '').toLowerCase().includes(searchParam)
+      );
+    }
+    const progParam = (queryParams.get('programme') || '').trim().toLowerCase();
+    if (progParam) {
+      items = items.filter((s: any) => (s.programme || '').trim().toLowerCase() === progParam);
+    }
+    const ayParam = (queryParams.get('academic_year') || '').trim();
+    if (ayParam) {
+      items = items.filter((s: any) => s.academic_year === ayParam);
+    }
+
+    return { items, total: items.length };
   }
 
   if (endpoint === '/students' && method === 'POST') {
@@ -565,8 +582,13 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
   }
 
   // 11. Certificates & Issuance
-  if (endpoint === '/certificates' && method === 'GET') {
-    return { items: store.certificates, total: store.certificates.length };
+  if (urlPath === '/certificates' && method === 'GET') {
+    let items = store.certificates;
+    const sId = queryParams.get('student_id');
+    if (sId) {
+      items = items.filter((c: any) => c.student_id === parseInt(sId, 10));
+    }
+    return { items, total: items.length };
   }
 
   if (endpoint === '/certificates/issue' && method === 'POST') {

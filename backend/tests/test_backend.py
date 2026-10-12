@@ -102,6 +102,16 @@ def test_student_b_eligible_at_20_hours(client, faculty_token):
     assert data['eligibility_state'] in ['Eligible - Awaiting Certificate Approval', 'Certificate Issued']
 
 def test_student_c_pending_hours_excluded_from_approved_totals(client, faculty_token):
+    # Ensure entry 9 is in its canonical seed state (pending)
+    with get_db() as s:
+        e = s.query(VolunteerHourEntry).get(9)
+        if e and e.submission_status != 'pending':
+            e.submission_status = 'pending'
+            e.verified_minutes = 0
+            e.reviewed_by = None
+            e.reviewed_at = None
+            s.commit()
+
     # Student C: 18 approved + 5 pending hours
     resp = client.get('/api/v1/eligibility/3', headers={'Authorization': f'Bearer {faculty_token}'})
     assert resp.status_code == 200
