@@ -329,7 +329,7 @@ def test_eligibility_report_dropdown_filters(client, coord_token):
     assert resp_st.status_code == 200
     items_st = resp_st.get_json()['items']
     for x in items_st:
-        assert 'Eligible' in x['eligibility_state'] or x['eligibility_state'] == 'Certificate Issued'
+        assert x['eligibility_state'].startswith('Eligible') or x['eligibility_state'] == 'Certificate Issued'
 
     # 6. Combined filters (academic_year + programme)
     resp_comb = client.get('/api/v1/reports/certificate-eligibility?academic_year=2025-2026&programme=B.Sc Data Science', headers={'Authorization': f'Bearer {coord_token}'})
@@ -342,7 +342,7 @@ def test_eligibility_report_dropdown_filters(client, coord_token):
     # 7. Summary cards match filtered items
     summary_comb = resp_comb.get_json()['summary']
     assert summary_comb['total_students'] == len(items_comb)
-    expected_eligible = sum(1 for x in items_comb if 'Eligible' in x['eligibility_state'] or x['eligibility_state'] == 'Certificate Issued')
+    expected_eligible = sum(1 for x in items_comb if x['eligibility_state'].startswith('Eligible') or x['eligibility_state'] == 'Certificate Issued')
     expected_ineligible = sum(1 for x in items_comb if x['eligibility_state'] == 'Not Eligible')
     expected_pending = sum(1 for x in items_comb if x['eligibility_state'] == 'Pending Hours Review')
     expected_issued = sum(1 for x in items_comb if x['eligibility_state'] == 'Certificate Issued')

@@ -112,7 +112,7 @@ def certificate_eligibility_report():
         # Calculate summary metric counts
         summary = {
             'total_students': len(items),
-            'eligible_count': sum(1 for x in items if 'Eligible' in x['eligibility_state'] or x['eligibility_state'] == 'Certificate Issued'),
+            'eligible_count': sum(1 for x in items if (x['eligibility_state'].startswith('Eligible') or x['eligibility_state'] == 'Certificate Issued')),
             'ineligible_count': sum(1 for x in items if x['eligibility_state'] == 'Not Eligible'),
             'pending_review_count': sum(1 for x in items if x['eligibility_state'] == 'Pending Hours Review'),
             'issued_count': sum(1 for x in items if x['eligibility_state'] == 'Certificate Issued')

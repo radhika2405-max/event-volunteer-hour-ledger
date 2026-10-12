@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { 
   Clock, Plus, CheckCircle, XCircle, Edit3, Filter, 
-  Calendar, AlertCircle, FileText, Check, X, ShieldAlert 
+  Calendar, AlertCircle, FileText, Check, X, ShieldAlert, Search 
 } from 'lucide-react';
 import { api, getCurrentUser } from '../services/api';
 
@@ -9,6 +9,7 @@ export const HourLedgerPage: React.FC = () => {
   const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showLogModal, setShowLogModal] = useState(false);
 
   // Rejection modal
@@ -137,10 +138,21 @@ export const HourLedgerPage: React.FC = () => {
   }, [entries]);
 
   const filteredEntries = useMemo(() => {
+    let result = entries;
     const norm = statusFilter.trim().toLowerCase();
-    if (!norm) return entries;
-    return entries.filter(e => (e.submission_status || '').trim().toLowerCase() === norm);
-  }, [entries, statusFilter]);
+    if (norm) {
+      result = result.filter(e => (e.submission_status || '').trim().toLowerCase() === norm);
+    }
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter(e =>
+        (e.student_name || '').toLowerCase().includes(q) ||
+        (e.registration_number || '').toLowerCase().includes(q) ||
+        (e.event_name || '').toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [entries, statusFilter, searchQuery]);
 
   const statusOptions = [
     { id: '', label: 'All' },
@@ -214,32 +226,64 @@ export const HourLedgerPage: React.FC = () => {
 
       {/* Filter Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-500" />
-          <span className="text-xs font-bold text-slate-700 uppercase">Filter Status:</span>
-          <div className="flex gap-1.5">
-            {statusOptions.map(st => {
-              const isActive = statusFilter.toLowerCase() === st.id.toLowerCase();
-              return (
-                <button
-                  key={st.id}
-                  onClick={() => setStatusFilter(st.id)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-400/30'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                  }`}
-                >
-                  {st.label}
-                </button>
-              );
-            })}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-slate-500" />
+            <span className="text-xs font-bold text-slate-700 uppercase">Status:</span>
+            <div className="flex gap-1.5">
+              {statusOptions.map(st => {
+                const isActive = statusFilter.toLowerCase() === st.id.toLowerCase();
+                return (
+                  <button
+                    key={st.id}
+                    onClick={() => setStatusFilter(st.id)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-400/30'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Quick Search */}
+          <div className="relative min-w-[220px]">
+            <input
+              type="text"
+              placeholder="Search student, reg no, or event..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-7 pr-7 py-1 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2 pointer-events-none" />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
         </div>
 
-        <span className="text-xs text-slate-500 font-medium">
-          Showing {filteredEntries.length} {statusFilter ? `(${statusFilter})` : ''} of {entries.length} Ledger Records
-        </span>
+        <div className="flex items-center gap-2.5">
+          {(statusFilter || searchQuery) && (
+            <button
+              onClick={() => { setStatusFilter(''); setSearchQuery(''); }}
+              className="text-xs text-blue-600 hover:text-blue-800 font-semibold"
+            >
+              Reset Filters
+            </button>
+          )}
+          <span className="text-xs text-slate-500 font-medium">
+            Showing {filteredEntries.length} {statusFilter ? `(${statusFilter})` : ''} of {entries.length} Ledger Records
+          </span>
+        </div>
       </div>
 
       {/* Ledger Table */}
@@ -253,16 +297,16 @@ export const HourLedgerPage: React.FC = () => {
           <div className="p-12 text-center text-slate-400">
             <Clock className="w-10 h-10 mx-auto mb-2 opacity-50" />
             <p className="text-sm font-semibold text-slate-700">
-              {statusFilter
-                ? `No records found for "${statusFilter}" status`
+              {statusFilter || searchQuery
+                ? `No records found matching your filter criteria`
                 : 'No Volunteer Hour Entries Found'}
             </p>
-            {statusFilter && (
+            {(statusFilter || searchQuery) && (
               <button
-                onClick={() => setStatusFilter('')}
+                onClick={() => { setStatusFilter(''); setSearchQuery(''); }}
                 className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-semibold"
               >
-                Clear filter to show all records
+                Clear all filters to show all records
               </button>
             )}
           </div>

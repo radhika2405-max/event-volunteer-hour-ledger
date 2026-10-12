@@ -151,17 +151,68 @@ export const EligibilityReportPage: React.FC = () => {
     }
   };
 
-  const items = reportData?.items || [];
+  const rawItems = reportData?.items || [];
+
+  // Instant multi-criteria displayed items computation
+  const displayedItems = useMemo(() => {
+    let result = rawItems;
+
+    const cleanSearch = (search || '').trim().toLowerCase();
+    if (cleanSearch) {
+      result = result.filter((x: any) =>
+        (x.student_name || '').toLowerCase().includes(cleanSearch) ||
+        (x.university_registration_number || '').toLowerCase().includes(cleanSearch)
+      );
+    }
+    if (academicYear) {
+      result = result.filter((x: any) => x.academic_year === academicYear);
+    }
+    if (programme) {
+      result = result.filter((x: any) => (x.programme || '').trim().toLowerCase() === programme.trim().toLowerCase());
+    }
+    if (status) {
+      const sClean = status.trim().toLowerCase();
+      result = result.filter((x: any) => {
+        const itemState = (x.eligibility_state || '').trim().toLowerCase();
+        if (sClean === 'eligible') {
+          return itemState.startsWith('eligible') || itemState === 'certificate issued';
+        }
+        if (sClean === 'pending' || sClean === 'pending hours review') {
+          return itemState === 'pending hours review';
+        }
+        if (sClean === 'not eligible' || sClean === 'ineligible') {
+          return itemState === 'not eligible';
+        }
+        if (sClean === 'certificate issued' || sClean === 'issued') {
+          return itemState === 'certificate issued';
+        }
+        if (sClean === 'certificate revoked' || sClean === 'revoked') {
+          return itemState === 'certificate revoked';
+        }
+        return itemState === sClean;
+      });
+    }
+    if (minHours) {
+      const mh = parseFloat(minHours);
+      if (!isNaN(mh)) {
+        result = result.filter((x: any) => (x.total_approved_hours || 0) >= mh);
+      }
+    }
+    return result;
+  }, [rawItems, search, academicYear, programme, status, minHours]);
+
+  const items = displayedItems;
+
   const summary = useMemo(() => {
-    if (reportData?.summary) return reportData.summary;
     return {
-      total_students: items.length,
-      eligible_count: items.filter((x: any) => (x.eligibility_state || '').includes('Eligible') || x.eligibility_state === 'Certificate Issued').length,
-      ineligible_count: items.filter((x: any) => x.eligibility_state === 'Not Eligible').length,
-      pending_review_count: items.filter((x: any) => x.eligibility_state === 'Pending Hours Review').length,
-      issued_count: items.filter((x: any) => x.eligibility_state === 'Certificate Issued').length,
+      total_students: displayedItems.length,
+      eligible_count: displayedItems.filter((x: any) => ((x.eligibility_state || '').startsWith('Eligible') || x.eligibility_state === 'Certificate Issued')).length,
+      ineligible_count: displayedItems.filter((x: any) => x.eligibility_state === 'Not Eligible').length,
+      pending_review_count: displayedItems.filter((x: any) => x.eligibility_state === 'Pending Hours Review').length,
+      issued_count: displayedItems.filter((x: any) => x.eligibility_state === 'Certificate Issued').length,
     };
-  }, [reportData, items]);
+  }, [displayedItems]);
+
   const metadata = reportData?.report_metadata;
 
   return (
@@ -210,44 +261,89 @@ export const EligibilityReportPage: React.FC = () => {
         </div>
       )}
 
-      {/* Summary KPI Cards */}
+      {/* Summary KPI Cards with Click-to-Filter */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+        <button
+          type="button"
+          onClick={() => handleResetFilters()}
+          title="Click to view all volunteers"
+          className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+            !status && !search && !academicYear && !programme && !eventId && !clubId && !minHours
+              ? 'bg-blue-50/70 border-blue-400 ring-2 ring-blue-400/20 shadow-sm'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
+          }`}
+        >
           <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Filtered Volunteers</p>
           <p className="text-xl font-bold text-slate-900 mt-0.5">{summary.total_students}</p>
-        </div>
+        </button>
 
-        <div className="bg-white p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/20 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setStatus(status === 'eligible' ? '' : 'eligible')}
+          title="Click to toggle filter for all eligible students (met 20h)"
+          className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+            status === 'eligible'
+              ? 'bg-emerald-100/70 border-emerald-500 ring-2 ring-emerald-400/30 shadow-sm'
+              : 'bg-white border-emerald-200 bg-emerald-50/20 hover:border-emerald-300 shadow-sm'
+          }`}
+        >
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">Eligible</p>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
           <p className="text-xl font-bold text-emerald-900 mt-0.5">{summary.eligible_count}</p>
-        </div>
+        </button>
 
-        <div className="bg-white p-3.5 rounded-xl border border-amber-200 bg-amber-50/20 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setStatus(status === 'Pending Hours Review' ? '' : 'Pending Hours Review')}
+          title="Click to toggle filter for Pending Hours Review"
+          className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+            status === 'Pending Hours Review'
+              ? 'bg-amber-100/70 border-amber-500 ring-2 ring-amber-400/30 shadow-sm'
+              : 'bg-white border-amber-200 bg-amber-50/20 hover:border-amber-300 shadow-sm'
+          }`}
+        >
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">Pending Review</p>
             <Clock className="w-4 h-4 text-amber-600" />
           </div>
           <p className="text-xl font-bold text-amber-900 mt-0.5">{summary.pending_review_count}</p>
-        </div>
+        </button>
 
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setStatus(status === 'Not Eligible' ? '' : 'Not Eligible')}
+          title="Click to toggle filter for Not Eligible"
+          className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+            status === 'Not Eligible'
+              ? 'bg-slate-200/80 border-slate-500 ring-2 ring-slate-400/30 shadow-sm'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
+          }`}
+        >
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Not Eligible</p>
             <XCircle className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-xl font-bold text-slate-700 mt-0.5">{summary.ineligible_count}</p>
-        </div>
+        </button>
 
-        <div className="bg-white p-3.5 rounded-xl border border-gold-200 bg-gold-50/20 shadow-sm col-span-2 md:col-span-1">
+        <button
+          type="button"
+          onClick={() => setStatus(status === 'Certificate Issued' ? '' : 'Certificate Issued')}
+          title="Click to toggle filter for Certificate Issued"
+          className={`p-3.5 rounded-xl border text-left transition cursor-pointer col-span-2 md:col-span-1 ${
+            status === 'Certificate Issued'
+              ? 'bg-gold-100/90 border-gold-500 ring-2 ring-gold-400/30 shadow-sm'
+              : 'bg-white border-gold-200 bg-gold-50/20 hover:border-gold-300 shadow-sm'
+          }`}
+        >
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold text-gold-800 uppercase tracking-wider">Certs Issued</p>
             <Award className="w-4 h-4 text-gold-600" />
           </div>
           <p className="text-xl font-bold text-gold-950 mt-0.5">{summary.issued_count}</p>
-        </div>
+        </button>
       </div>
 
       {/* Filter Toolbar Card (Hidden in print) */}
@@ -348,10 +444,11 @@ export const EligibilityReportPage: React.FC = () => {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium"
             >
               <option value="">All Statuses</option>
-              <option value="Eligible - Awaiting Certificate Approval">Eligible (Awaiting)</option>
+              <option value="eligible">Eligible (All - Met 20h)</option>
+              <option value="Eligible - Awaiting Certificate Approval">Eligible - Awaiting Approval</option>
               <option value="Certificate Issued">Certificate Issued</option>
               <option value="Pending Hours Review">Pending Hours Review</option>
               <option value="Not Eligible">Not Eligible</option>
@@ -408,7 +505,7 @@ export const EligibilityReportPage: React.FC = () => {
                 {items.map((row: any) => {
                   const approved = parseFloat(row.total_approved_hours) || 0;
                   const threshold = parseFloat(row.threshold_hours) || 20;
-                  const isEligible = row.eligibility_state.includes('Eligible');
+                  const isEligible = (row.eligibility_state || '').startsWith('Eligible');
                   const isIssued = row.eligibility_state === 'Certificate Issued';
                   const isPendingReview = row.eligibility_state === 'Pending Hours Review';
                   const isRevoked = row.eligibility_state === 'Certificate Revoked';

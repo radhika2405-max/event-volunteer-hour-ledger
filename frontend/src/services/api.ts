@@ -518,7 +518,7 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
       items = items.filter((x: any) => {
         const itemState = (x.eligibility_state || '').trim().toLowerCase();
         if (statusParam === 'eligible') {
-          return itemState.includes('eligible') || itemState === 'certificate issued';
+          return itemState.startsWith('eligible') || itemState === 'certificate issued';
         }
         if (statusParam === 'pending' || statusParam === 'pending hours review') {
           return itemState === 'pending hours review';
@@ -546,7 +546,7 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
 
     const summary = {
       total_students: items.length,
-      eligible_count: items.filter((x: any) => (x.eligibility_state || '').includes('Eligible') || x.eligibility_state === 'Certificate Issued').length,
+      eligible_count: items.filter((x: any) => ((x.eligibility_state || '').startsWith('Eligible') || x.eligibility_state === 'Certificate Issued')).length,
       ineligible_count: items.filter((x: any) => x.eligibility_state === 'Not Eligible').length,
       pending_review_count: items.filter((x: any) => x.eligibility_state === 'Pending Hours Review').length,
       issued_count: items.filter((x: any) => x.eligibility_state === 'Certificate Issued').length,

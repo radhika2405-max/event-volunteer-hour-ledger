@@ -109,7 +109,7 @@ function testEligibilityReportFiltering(students, participations, hourEntries, c
     items = items.filter(x => {
       const state = (x.eligibility_state || '').trim().toLowerCase();
       if (s === 'eligible') {
-        return state.includes('eligible') || state === 'certificate issued';
+        return state.startsWith('eligible') || state === 'certificate issued';
       }
       if (s === 'pending' || s === 'pending hours review') {
         return state === 'pending hours review';
@@ -130,7 +130,7 @@ function testEligibilityReportFiltering(students, participations, hourEntries, c
   // 3. Recalculate summary metrics from filtered items
   const summary = {
     total_students: items.length,
-    eligible_count: items.filter(x => (x.eligibility_state || '').includes('Eligible') || x.eligibility_state === 'Certificate Issued').length,
+    eligible_count: items.filter(x => (x.eligibility_state || '').startsWith('Eligible') || x.eligibility_state === 'Certificate Issued').length,
     ineligible_count: items.filter(x => x.eligibility_state === 'Not Eligible').length,
     pending_review_count: items.filter(x => x.eligibility_state === 'Pending Hours Review').length,
     issued_count: items.filter(x => x.eligibility_state === 'Certificate Issued').length,
@@ -259,7 +259,7 @@ test('BUG 2: Eligibility Report dropdown filters and summary recalculation', () 
   });
   assert.ok(resElig.items.length > 0);
   resElig.items.forEach(x => {
-    assert.ok(x.eligibility_state.includes('Eligible') || x.eligibility_state === 'Certificate Issued');
+    assert.ok(x.eligibility_state.startsWith('Eligible') || x.eligibility_state === 'Certificate Issued');
   });
 
   // 6. Combined filters (programme + academic_year)
@@ -276,7 +276,7 @@ test('BUG 2: Eligibility Report dropdown filters and summary recalculation', () 
   // 7. Verify Summary KPI cards match filtered items exactly
   const s = resComb.summary;
   assert.equal(s.total_students, resComb.items.length);
-  const expectedElig = resComb.items.filter(x => x.eligibility_state.includes('Eligible') || x.eligibility_state === 'Certificate Issued').length;
+  const expectedElig = resComb.items.filter(x => x.eligibility_state.startsWith('Eligible') || x.eligibility_state === 'Certificate Issued').length;
   const expectedInelig = resComb.items.filter(x => x.eligibility_state === 'Not Eligible').length;
   const expectedPending = resComb.items.filter(x => x.eligibility_state === 'Pending Hours Review').length;
   const expectedIssued = resComb.items.filter(x => x.eligibility_state === 'Certificate Issued').length;

@@ -9,6 +9,7 @@ export const VolunteersPage: React.FC = () => {
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [programme, setProgramme] = useState('');
   const [academicYear, setAcademicYear] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
@@ -27,11 +28,19 @@ export const VolunteersPage: React.FC = () => {
   const user = getCurrentUser();
   const isAdmin = user?.role === 'admin';
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const loadStudents = async () => {
     try {
       setLoading(true);
       const params: any = {};
-      if (search) params.search = search;
+      const cleanSearch = (debouncedSearch || '').trim();
+      if (cleanSearch) params.search = cleanSearch;
       if (programme) params.programme = programme;
       if (academicYear) params.academic_year = academicYear;
 
@@ -46,11 +55,11 @@ export const VolunteersPage: React.FC = () => {
 
   useEffect(() => {
     loadStudents();
-  }, [programme, academicYear]);
+  }, [debouncedSearch, programme, academicYear]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadStudents();
+    setDebouncedSearch(search);
   };
 
   const openStudentDetail = async (id: number) => {
