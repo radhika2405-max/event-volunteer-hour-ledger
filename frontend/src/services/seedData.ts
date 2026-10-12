@@ -222,7 +222,7 @@ export const initialSeedData: SeedData = {
   ],
 
   clubs: [
-    { club_id: 1, club_name: 'AADIKALA', parent_club_id: null, description: 'Official Umbrella Arts, Technology and Cultural Organization of School of Sciences', status: 'active' },
+    { club_id: 1, club_name: 'ADIKALA', parent_club_id: null, description: 'Official Umbrella Arts, Technology and Cultural Organization of School of Sciences', status: 'active' },
     { club_id: 2, club_name: 'Dance Sub-club', parent_club_id: 1, description: 'Choreography, classical and western performance arts wing', status: 'active' },
     { club_id: 3, club_name: 'Emcee Sub-club', parent_club_id: 1, description: 'Anchoring, public speaking, and stage hosting wing', status: 'active' },
     { club_id: 4, club_name: 'Technical Sub-club', parent_club_id: 1, description: 'AV operations, technical staging, IT and digital media wing', status: 'active' },
@@ -469,7 +469,7 @@ export const initialSeedData: SeedData = {
       programme: 'BCA',
       policy_id: 1,
       policy_name: 'All-Events Volunteer Honors Policy (20 Hours)',
-      certificate_number: 'CHRIST/AADIKALA/2026/0005-7821',
+      certificate_number: 'CHRIST/ADIKALA/2026/0005-7821',
       eligibility_snapshot_minutes: 1320,
       eligibility_snapshot_hours: 22.0,
       issued_at: '2026-02-15T11:30:00',
@@ -485,7 +485,7 @@ export const initialSeedData: SeedData = {
       programme: 'M.Sc Data Science',
       policy_id: 1,
       policy_name: 'All-Events Volunteer Honors Policy (20 Hours)',
-      certificate_number: 'CHRIST/AADIKALA/2026/0006-4412',
+      certificate_number: 'CHRIST/ADIKALA/2026/0006-4412',
       eligibility_snapshot_minutes: 1200,
       eligibility_snapshot_hours: 20.0,
       issued_at: '2026-03-01T10:00:00',
@@ -502,7 +502,7 @@ export const initialSeedData: SeedData = {
       action: 'SYSTEM_INIT',
       entity_type: 'system',
       entity_id: 1,
-      reason: 'System initialized with AADIKALA clubs & policies',
+      reason: 'System initialized with ADIKALA clubs & policies',
       timestamp: '2026-01-10T09:00:00',
     },
     {

@@ -190,7 +190,7 @@ export const EventsPage: React.FC = () => {
                   </h3>
 
                   <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                    {ev.description || 'Department event in collaboration with AADIKALA wings.'}
+                    {ev.description || 'Department event in collaboration with ADIKALA wings.'}
                   </p>
 
                   <div className="mt-3.5 space-y-1.5 text-xs text-slate-600">

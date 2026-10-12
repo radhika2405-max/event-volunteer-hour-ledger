@@ -4,6 +4,7 @@ from app.db import get_db
 from app.models import VolunteerHourEntry, EventVolunteer, AuditLog
 from app.permissions.rbac import role_required, get_current_user_context
 from datetime import datetime, date, time
+from sqlalchemy import func
 
 hours_bp = Blueprint('hours', __name__, url_prefix='/api/v1/hours')
 
@@ -83,8 +84,8 @@ def list_hours():
     with get_db() as session:
         query = session.query(VolunteerHourEntry).join(EventVolunteer, VolunteerHourEntry.participation_id == EventVolunteer.participation_id)
 
-        if status:
-            query = query.filter(VolunteerHourEntry.submission_status == status)
+        if status and status.strip():
+            query = query.filter(func.lower(VolunteerHourEntry.submission_status) == status.strip().lower())
         if student_id:
             query = query.filter(EventVolunteer.student_id == int(student_id))
         if event_id:

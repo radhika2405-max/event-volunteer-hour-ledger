@@ -2,7 +2,7 @@ import os
 import hashlib
 from datetime import datetime
 from flask import Blueprint, request, jsonify, send_file, Response
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, decode_token
 from app.db import get_db
 from app.models import Certificate, CertificatePolicy, Student, EventVolunteer, VolunteerHourEntry, AuditLog
 from app.permissions.rbac import role_required, get_current_user_context
@@ -55,7 +55,7 @@ def issue_certificate():
 
         # Generate unique certificate number & token
         now_str = datetime.now().strftime('%Y%m%d%H%M%S')
-        cert_num = f"CHRIST/AADIKALA/2026/{student_id:04d}-{now_str[-4:]}"
+        cert_num = f"CHRIST/ADIKALA/2026/{student_id:04d}-{now_str[-4:]}"
         token = hashlib.sha256(f"{cert_num}:{student_id}:{now_str}".encode()).hexdigest()
 
         cert = Certificate(
@@ -109,17 +109,42 @@ def list_certificates():
 
 
 @certificates_bp.route('/<int:cert_id>/download', methods=['GET'])
-@jwt_required()
 def download_certificate(cert_id):
-    ctx = get_current_user_context()
+    user_context = None
+    auth_header = request.headers.get('Authorization', '')
+    query_token = request.args.get('token', '')
+
+    token_str = None
+    if auth_header.startswith('Bearer '):
+        token_str = auth_header.split(' ')[1]
+    elif query_token:
+        token_str = query_token
+
+    if token_str:
+        try:
+            decoded = decode_token(token_str)
+            user_context = {
+                'user_id': int(decoded['sub']),
+                'role': decoded.get('role'),
+                'student_id': decoded.get('student_id'),
+                'email': decoded.get('email'),
+                'full_name': decoded.get('full_name')
+            }
+        except Exception:
+            pass
+
     with get_db() as session:
         cert = session.query(Certificate).get(cert_id)
         if not cert:
             return jsonify({'error': 'Certificate not found'}), 404
 
-        # Security check: Student cannot download another student's certificate
-        if ctx['role'] == 'volunteer' and cert.student_id != ctx['student_id']:
+        # Security check: If authenticated as volunteer, cannot download another student's certificate
+        if user_context and user_context.get('role') == 'volunteer' and user_context.get('student_id') != cert.student_id:
             return jsonify({'error': 'Forbidden: You cannot download another student certificate'}), 403
+
+        # If not authenticated, ensure certificate is issued (not revoked)
+        if not user_context and cert.certificate_status != 'issued':
+            return jsonify({'error': 'Missing authorization token or certificate is not published'}), 401
 
         cert_dict = cert.to_dict()
         pdf_bytes = generate_certificate_pdf(cert_dict)
@@ -128,7 +153,7 @@ def download_certificate(cert_id):
         return Response(
             pdf_bytes,
             mimetype='application/pdf',
-            headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+            headers={'Content-Disposition': f'inline; filename="{filename}"'}
         )
 
 
@@ -153,7 +178,7 @@ def public_verify_certificate(token):
             'programme': cert.student.programme,
             'institution': 'CHRIST (Deemed to be University), Delhi NCR Campus',
             'school': 'School of Sciences',
-            'organization': 'AADIKALA Volunteer Honor Ledger',
+            'organization': 'ADIKALA Volunteer Honor Ledger',
             'policy_name': cert.policy.policy_name,
             'verified_volunteer_hours': cert.to_dict()['eligibility_snapshot_hours'],
             'issued_at': cert.issued_at.strftime('%Y-%m-%d') if cert.issued_at else None,

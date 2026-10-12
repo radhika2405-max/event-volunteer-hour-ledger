@@ -74,7 +74,7 @@ INSERT INTO students (student_id, user_id, university_registration_number, progr
 (22, 26, '2347122', 'B.Sc Data Science', '2025-2026', 'A', 'zoya.f@christuniversity.in', 'active', NOW());
 
 INSERT INTO clubs (club_id, club_name, parent_club_id, description, status, created_at) VALUES
-(1, 'AADIKALA', NULL, 'Official Umbrella Arts, Technology and Cultural Organization of School of Sciences', 'active', NOW()),
+(1, 'ADIKALA', NULL, 'Official Umbrella Arts, Technology and Cultural Organization of School of Sciences', 'active', NOW()),
 (2, 'Dance Sub-club', 1, 'Choreography, classical and western performance arts wing', 'active', NOW()),
 (3, 'Emcee Sub-club', 1, 'Anchoring, public speaking, and stage hosting wing', 'active', NOW()),
 (4, 'Technical Sub-club', 1, 'AV operations, technical staging, IT and digital media wing', 'active', NOW()),
@@ -177,11 +177,11 @@ INSERT INTO volunteer_hour_entries (hour_entry_id, participation_id, work_date, 
 (31, 30, '2026-03-05', '11:00:00', '16:00:00', 30, 270, 270, 'approved', 2, 3, NOW(), NULL, NULL, NOW(), NOW());
 
 INSERT INTO certificates (certificate_id, student_id, policy_id, certificate_number, eligibility_snapshot_minutes, issued_at, issued_by, certificate_status, revocation_reason, verification_token, pdf_path, created_at) VALUES
-(1, 5, 1, 'CHRIST/AADIKALA/2026/0005-7821', 1320, '2026-02-15 11:30:00', 3, 'issued', NULL, 'd3b07384d113edec49eaa6238ad5ff00b98e1a78', 'certificates/cert_0005.pdf', NOW()),
-(2, 6, 1, 'CHRIST/AADIKALA/2026/0006-4412', 1200, '2026-03-01 10:00:00', 1, 'revoked', 'Internal audit revealed overlap with off-campus academic symposium attendance record.', 'c4ca4238a0b923820dcc509a6f75849b23820dcc', 'certificates/cert_0006.pdf', NOW());
+(1, 5, 1, 'CHRIST/ADIKALA/2026/0005-7821', 1320, '2026-02-15 11:30:00', 3, 'issued', NULL, 'd3b07384d113edec49eaa6238ad5ff00b98e1a78', 'certificates/cert_0005.pdf', NOW()),
+(2, 6, 1, 'CHRIST/ADIKALA/2026/0006-4412', 1200, '2026-03-01 10:00:00', 1, 'revoked', 'Internal audit revealed overlap with off-campus academic symposium attendance record.', 'c4ca4238a0b923820dcc509a6f75849b23820dcc', 'certificates/cert_0006.pdf', NOW());
 
 INSERT INTO audit_logs (actor_user_id, action, entity_type, entity_id, before_state, after_state, reason, timestamp, request_id) VALUES
-(1, 'SYSTEM_INIT', 'system', 1, NULL, JSON_OBJECT('version', '1.0.0', 'school', 'School of Sciences'), 'System initialized with AADIKALA clubs & policies', NOW(), 'REQ-INIT-001'),
+(1, 'SYSTEM_INIT', 'system', 1, NULL, JSON_OBJECT('version', '1.0.0', 'school', 'School of Sciences'), 'System initialized with ADIKALA clubs & policies', NOW(), 'REQ-INIT-001'),
 (3, 'HOUR_APPROVAL', 'volunteer_hour_entries', 1, JSON_OBJECT('status', 'pending'), JSON_OBJECT('status', 'approved', 'verified_minutes', 420), 'Verified by Faculty Approver for SUNERGOS', NOW(), 'REQ-APP-001'),
-(3, 'CERTIFICATE_ISSUED', 'certificates', 1, NULL, JSON_OBJECT('student_id', 5, 'certificate_number', 'CHRIST/AADIKALA/2026/0005-7821', 'hours', 22.0), 'Honors Certificate issued to Eshan Gupta', NOW(), 'REQ-CERT-001'),
+(3, 'CERTIFICATE_ISSUED', 'certificates', 1, NULL, JSON_OBJECT('student_id', 5, 'certificate_number', 'CHRIST/ADIKALA/2026/0005-7821', 'hours', 22.0), 'Honors Certificate issued to Eshan Gupta', NOW(), 'REQ-CERT-001'),
 (1, 'CERTIFICATE_REVOKED', 'certificates', 2, JSON_OBJECT('status', 'issued'), JSON_OBJECT('status', 'revoked'), 'Revoked due to conflicting attendance audit', NOW(), 'REQ-REV-001');

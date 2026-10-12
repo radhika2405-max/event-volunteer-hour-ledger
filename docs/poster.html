@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Research Poster: Event Volunteer Hour Ledger | CHRIST University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-dark: #0f172a;
+      --accent-gold: #d97706;
+      --accent-green: #047857;
+      --accent-blue: #0284c7;
+      --accent-purple: #7c3aed;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-700: #334155;
+      --slate-900: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #cbd5e1;
+      color: var(--slate-900);
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Standard A1 Landscape Poster Aspect Ratio (841mm x 594mm ~ 1.416) */
+    .poster-container {
+      width: 1400px;
+      min-height: 990px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Header Banner */
+    .poster-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color: #ffffff;
+      border-radius: 8px;
+      padding: 24px 30px;
+      text-align: center;
+      border-bottom: 4px solid var(--accent-gold);
+    }
+
+    .inst-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 14px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #93c5fd;
+      margin-bottom: 8px;
+    }
+
+    .poster-title {
+      font-size: 2.3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 6px;
+      color: #ffffff;
+    }
+
+    .poster-subtitle {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #fde68a;
+      margin-bottom: 12px;
+    }
+
+    .poster-meta {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 18px;
+      font-size: 0.92rem;
+      color: #cbd5e1;
+    }
+
+    .poster-meta a {
+      color: #fde68a;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    /* 3-Column Grid */
+    .poster-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .poster-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Modular Section Card */
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card.highlight-amber {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .card.highlight-blue {
+      border-color: #38bdf8;
+      background: #f0f9ff;
+    }
+
+    .card.highlight-green {
+      border-color: #34d399;
+      background: #f0fdf4;
+    }
+
+    .card.highlight-purple {
+      border-color: #c084fc;
+      background: #faf5ff;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid var(--slate-200);
+      padding-bottom: 6px;
+    }
+
+    .card-title .badge-num {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .card p {
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: var(--slate-700);
+    }
+
+    .card ul {
+      list-style-type: none;
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card li {
+      font-size: 0.86rem;
+      line-height: 1.4;
+      color: var(--slate-700);
+      position: relative;
+      padding-left: 14px;
+    }
+
+    .card li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent-gold);
+      font-weight: bold;
+    }
+
+    .code-box {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.35;
+      padding: 10px 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+
+    .code-box .kw { color: #f472b6; font-weight: 600; }
+    .code-box .fn { color: #38bdf8; }
+    .code-box .str { color: #a3e635; }
+    .code-box .cm { color: #64748b; font-style: italic; }
+
+    /* Compact Schema Table */
+    .mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .mini-table th {
+      background: var(--primary);
+      color: #ffffff;
+      padding: 5px 8px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .mini-table td {
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--slate-200);
+      color: var(--slate-700);
+    }
+
+    .mini-table tr:nth-child(even) {
+      background: var(--slate-50);
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: transparent;
+        padding: 0;
+      }
+      .poster-container {
+        width: 100%;
+        box-shadow: none;
+        border-radius: 0;
+        padding: 15mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="poster-container">
+    <!-- Header Banner -->
+    <header class="poster-header">
+      <div class="inst-badge">
+        <span>CHRIST (Deemed to be University) • Delhi NCR Campus • School of Sciences</span>
+      </div>
+      <h1 class="poster-title">EVENT VOLUNTEER HOUR LEDGER</h1>
+      <div class="poster-subtitle">A Relational Database Management System for Service Hour Accounting, Faculty Verification &amp; Certificate Governance</div>
+      <div class="poster-meta">
+        <span><b>Author:</b> Radhika (and Team)</span>
+        <span>&bull;</span>
+        <span><b>Student Organization:</b> AADIKALA (Dance, Emcee, Technical, Creative, Music, Hospitality Sub-Clubs)</span>
+        <span>&bull;</span>
+        <span><b>Live URL:</b> <a href="https://radhika2405-max.github.io/event-volunteer-hour-ledger/" target="_blank">radhika2405-max.github.io/event-volunteer-hour-ledger</a></span>
+        <span>&bull;</span>
+        <span><b>Tech Stack:</b> MySQL 8.0 (3NF/BCNF) • React 18 (Vite, TS) • Flask REST API</span>
+      </div>
+    </header>
+
+    <!-- 3-Column Poster Grid -->
+    <main class="poster-grid">
+
+      <!-- ================= COLUMN 1 ================= -->
+      <div class="poster-column">
+        <!-- 1. The Real-World Problem -->
+        <section class="card highlight-amber">
+          <div class="card-title">
+            <span class="badge-num">1</span>
+            <span>Real-World Domain &amp; Spreadsheet Crisis</span>
+          </div>
+          <p>
+            <b>Institutional Context:</b> AADIKALA coordinates student leadership across 6 campus sub-clubs. Co-hosting major university festivals like <i>SUNERGOS</i> and <i>TARANG</i> mobilizes hundreds of volunteer labor hours across setup, stage, and hospitality.
+          </p>
+          <p><b>The 4 Fatal Flaws of Traditional Spreadsheets:</b></p>
+          <ul>
+            <li><b>Mutable Update Anomaly:</b> Storing a single editable "Total Hours" cell causes lost updates when multiple coordinators edit simultaneously.</li>
+            <li><b>Multi-Club Join Inflation:</b> Co-hosted events associate multiple sub-clubs; unnormalized queries multiply volunteer hours by the club count.</li>
+            <li><b>Premature Certification:</b> Students with pending unreviewed timesheets claim certificates before faculty verification.</li>
+            <li><b>Lack of Change Data Capture:</b> Zero auditability of who modified, approved, or revoked hours.</li>
+          </ul>
+        </section>
+
+        <!-- 2. The Ledger Paradigm -->
+        <section class="card highlight-blue">
+          <div class="card-title">
+            <span class="badge-num">2</span>
+            <span>The Architectural Solution: The Ledger Paradigm</span>
+          </div>
+          <p>
+            To eliminate the mutable aggregate anomaly, the schema applies the <b>Ledger Paradigm</b> inspired by financial accounting:
+          </p>
+          <div class="code-box">
+<span class="cm">-- Total hours are NEVER stored as a mutable column!</span>
+<span class="cm">-- Dynamically aggregated via authoritative SQL views:</span>
+<span class="kw">SELECT</span> student_id,
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(verified_minutes) / 60.0, 2) <span class="kw">AS</span> approved_hours
+<span class="kw">FROM</span> volunteer_hour_entries
+<span class="kw">WHERE</span> submission_status <span class="kw">IN</span> (<span class="str">'approved'</span>, <span class="str">'corrected'</span>)
+<span class="kw">GROUP BY</span> student_id;
+          </div>
+          <p>
+            <b>Status Isolation:</b> Pending claimed hours and rejected submissions are strictly isolated from certified totals, preventing premature rewards.
+          </p>
+        </section>
+
+        <!-- 3. Policy Rule & Objectives -->
+        <section class="card">
+          <div class="card-title">
+            <span class="badge-num">3</span>
+            <span>University Milestone Rule &amp; Scope</span>
+          </div>
+          <p>
+            <b>The 20-Hour Rule:</b> Students achieving &ge; 20 verified volunteer hours (1,200 minutes) across university events earn an official <i>Certificate of Volunteer Contribution</i>.
+          </p>
+          <ul>
+            <li>Engineer a 3NF/BCNF relational database schema in MySQL 8.0.</li>
+            <li>Enforce database-level Check Constraints and Foreign Key actions.</li>
+            <li>Implement triggers for workflow state machines and audit logging.</li>
+            <li>Wrap certificate issuance in ACID transactions with row-level locks.</li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- ================= COLUMN 2 ================= -->
+      <div class="poster-column">
+        <!-- 4. Three-Tier Architecture & ER Model -->
+        <section class="card">
+          <div class="card-title">
+            <span class="badge-num">4</span>
+            <span>Relational Architecture &amp; 10 Tables</span>
+          </div>
+          <p>
+            The system employs a decoupled 3-tier architecture: React 18 Frontend &rarr; Python Flask REST API &rarr; MySQL 8.0 InnoDB Engine.
+          </p>
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>Relation</th>
+                <th>Keys</th>
+                <th>Purpose &amp; Cardinality</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>users</code></td>
+                <td><code>user_id (PK)</code></td>
+                <td>1:1 with students; login credentials &amp; RBAC.</td>
+              </tr>
+              <tr>
+                <td><code>students</code></td>
+                <td><code>student_id (PK)</code></td>
+                <td>Academic registry; reg number &amp; programme.</td>
+              </tr>
+              <tr>
+                <td><code>clubs</code></td>
+                <td><code>club_id (PK)</code></td>
+                <td>1:N Recursive Self-Join (AADIKALA &amp; 6 sub-clubs).</td>
+              </tr>
+              <tr>
+                <td><code>events</code></td>
+                <td><code>event_id (PK)</code></td>
+                <td>1:N with participation; campus event logs.</td>
+              </tr>
+              <tr>
+                <td><code>event_subclubs</code></td>
+                <td><code>(event_id, club_id)</code></td>
+                <td>M:N junction connecting events to sub-clubs.</td>
+              </tr>
+              <tr>
+                <td><code>event_volunteers</code></td>
+                <td><code>participation_id</code></td>
+                <td>M:N associative entity; UNIQUE (event, student).</td>
+              </tr>
+              <tr>
+                <td><code>hour_entries</code></td>
+                <td><code>hour_entry_id</code></td>
+                <td>1:N transactional ledger of work intervals.</td>
+              </tr>
+              <tr>
+                <td><code>policies</code></td>
+                <td><code>policy_id (PK)</code></td>
+                <td>Threshold policies (1,200 mins = 20 hrs).</td>
+              </tr>
+              <tr>
+                <td><code>certificates</code></td>
+                <td><code>certificate_id</code></td>
+                <td>Immutable award snapshot + SHA-256 token.</td>
+              </tr>
+              <tr>
+                <td><code>audit_logs</code></td>
+                <td><code>audit_id (PK)</code></td>
+                <td>Change Data Capture before/after JSON states.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 5. Normalization Journey & Join Inflation -->
+        <section class="card highlight-green">
+          <div class="card-title">
+            <span class="badge-num">5</span>
+            <span>Normalization (3NF) &amp; Join Inflation</span>
+          </div>
+          <p><b>Normalization Decomposition (1NF &rarr; 3NF/BCNF):</b></p>
+          <ul>
+            <li><b>1NF:</b> Atomic attributes. Decomposed repeating multi-club strings into junction table <code>event_subclubs(event_id, club_id)</code>.</li>
+            <li><b>2NF:</b> Removed partial dependencies. Non-key club attributes reside in <code>clubs</code>; event attributes reside in <code>events</code>.</li>
+            <li><b>3NF &amp; BCNF:</b> Removed transitive dependencies. Separated authentication identity from student records; removed mutable derived totals.</li>
+          </ul>
+          <p>
+            <b>Solving Join Inflation:</b> When an event has 3 sub-clubs, joining clubs directly to hours triples recorded hours! Our design attaches hours strictly to <code>event_volunteers(participation_id)</code>, guaranteeing mathematical precision.
+          </p>
+        </section>
+
+        <!-- 6. Database Views -->
+        <section class="card">
+          <div class="card-title">
+            <span class="badge-num">6</span>
+            <span>5 Specialized Database Views</span>
+          </div>
+          <ul>
+            <li><code>vw_student_approved_hours</code>: Canonical student aggregation using <code>SUM(CASE WHEN...)</code>.</li>
+            <li><code>vw_certificate_eligibility</code>: Real-time threshold evaluation separating eligibility from issuance.</li>
+            <li><code>vw_event_volunteer_summary</code>: Headcount and verified labor per event without duplicate club rows.</li>
+            <li><code>vw_subclub_contribution_summary</code>: Hierarchy-aware labor analytics for Dance, Emcee, Technical, Creative, Music, Hospitality.</li>
+            <li><code>vw_pending_review_queue</code>: Actionable queue for faculty approvers.</li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- ================= COLUMN 3 ================= -->
+      <div class="poster-column">
+        <!-- 7. Triggers & ACID Transactions -->
+        <section class="card highlight-purple">
+          <div class="card-title">
+            <span class="badge-num">7</span>
+            <span>Active Triggers &amp; ACID Concurrency</span>
+          </div>
+          <p><b>Active Database Triggers:</b></p>
+          <ul>
+            <li><code>trg_vhe_before_insert</code>: Validates positive claimed minutes and non-negative breaks.</li>
+            <li><code>trg_vhe_before_update</code>: Rejection without written notes raises <code>SIGNAL SQLSTATE '45000'</code>.</li>
+            <li><code>trg_vhe_after_update</code>: Automatically logs old &amp; new states into <code>audit_logs</code> as JSON.</li>
+          </ul>
+          <p><b>ACID Stored Procedure (Row-Level Locking):</b></p>
+          <div class="code-box">
+<span class="kw">START TRANSACTION</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> policies <span class="kw">WHERE</span> policy_id = 1 <span class="kw">FOR SHARE</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> students <span class="kw">WHERE</span> student_id = 4 <span class="kw">FOR UPDATE</span>;
+<span class="cm">-- If approved_minutes &lt; 1200 THEN ROLLBACK; END IF;</span>
+<span class="cm">-- If already issued THEN ROLLBACK; END IF;</span>
+<span class="kw">INSERT INTO</span> certificates (...) <span class="kw">VALUES</span> (...);
+<span class="kw">COMMIT</span>;
+          </div>
+          <p>Prevents duplicate certificate issuance during concurrent requests.</p>
+        </section>
+
+        <!-- 8. Query Optimization & Analytics -->
+        <section class="card highlight-blue">
+          <div class="card-title">
+            <span class="badge-num">8</span>
+            <span>B-Tree Indexing Strategy &amp; Analytics</span>
+          </div>
+          <p>
+            <b>Indexing:</b> Clustered PKs, secondary B-trees (<code>reg_no, email, token</code>), and composite B-tree <code>idx_vhe_part_status(participation_id, submission_status)</code>.
+          </p>
+          <p>
+            <b>Performance:</b> <code>EXPLAIN</code> analysis proves queries use index seeks (<code>ref/range</code>) under 50ms, eliminating table scans (<code>ALL</code>).
+          </p>
+          <p><b>6 Analytical Queries in reports.sql:</b></p>
+          <ul>
+            <li>Eligible Students (&ge; 20 Hrs) &bull; Near-Threshold Volunteers (15–19.99 Hrs)</li>
+            <li>Event Labor without Duplication &bull; Sub-Club Breakdown (Dance, Emcee, etc.)</li>
+            <li>Pending Submissions Impact Simulation &bull; Certificate Traceability Log</li>
+          </ul>
+        </section>
+
+        <!-- 9. Results & Verification -->
+        <section class="card highlight-green">
+          <div class="card-title">
+            <span class="badge-num">9</span>
+            <span>Production Verification &amp; Live Deployment</span>
+          </div>
+          <p>
+            <b>Evaluation Scenarios Verified:</b> Student A (18h, Ineligible) &bull; Student B (20h, Eligible) &bull; Student C (18h+5h pending, Review) &bull; Student D (24h, Certified).
+          </p>
+          <p>
+            <b>Public Verification Engine:</b> Every certificate carries a unique SHA-256 token verifiable live at:
+            <br/>
+            <a href="https://radhika2405-max.github.io/event-volunteer-hour-ledger/" target="_blank" style="color: var(--primary); font-weight: 700;">https://radhika2405-max.github.io/event-volunteer-hour-ledger/</a>
+          </p>
+          <p style="margin-top: 4px; font-weight: 600; color: var(--accent-green);">
+            Conclusion: Proves that foundational relational DBMS theory directly solves real-world campus service governance without data anomalies.
+          </p>
+        </section>
+      </div>
+
+    </main>
+  </div>
+
+</body>
+</html>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { 
   Clock, Plus, CheckCircle, XCircle, Edit3, Filter, 
   Calendar, AlertCircle, FileText, Check, X, ShieldAlert 
@@ -37,9 +37,7 @@ export const HourLedgerPage: React.FC = () => {
   const loadEntries = async () => {
     try {
       setLoading(true);
-      const params: any = {};
-      if (statusFilter) params.status = statusFilter;
-      const res = await api.getHours(params);
+      const res = await api.getHours();
       setEntries(res.items || []);
     } catch (e) {
       console.error(e);
@@ -50,7 +48,7 @@ export const HourLedgerPage: React.FC = () => {
 
   useEffect(() => {
     loadEntries();
-  }, [statusFilter]);
+  }, []);
 
   useEffect(() => {
     if (showLogModal) {
@@ -134,7 +132,23 @@ export const HourLedgerPage: React.FC = () => {
     }
   };
 
-  const pendingEntries = entries.filter(e => e.submission_status === 'pending');
+  const pendingEntries = useMemo(() => {
+    return entries.filter(e => (e.submission_status || '').trim().toLowerCase() === 'pending');
+  }, [entries]);
+
+  const filteredEntries = useMemo(() => {
+    const norm = statusFilter.trim().toLowerCase();
+    if (!norm) return entries;
+    return entries.filter(e => (e.submission_status || '').trim().toLowerCase() === norm);
+  }, [entries, statusFilter]);
+
+  const statusOptions = [
+    { id: '', label: 'All' },
+    { id: 'pending', label: 'Pending' },
+    { id: 'approved', label: 'Approved' },
+    { id: 'rejected', label: 'Rejected' },
+    { id: 'corrected', label: 'Corrected' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -204,24 +218,27 @@ export const HourLedgerPage: React.FC = () => {
           <Filter className="w-4 h-4 text-slate-500" />
           <span className="text-xs font-bold text-slate-700 uppercase">Filter Status:</span>
           <div className="flex gap-1.5">
-            {['', 'pending', 'approved', 'rejected', 'corrected'].map(st => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition ${
-                  statusFilter === st
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
-              >
-                {st || 'All'}
-              </button>
-            ))}
+            {statusOptions.map(st => {
+              const isActive = statusFilter.toLowerCase() === st.id.toLowerCase();
+              return (
+                <button
+                  key={st.id}
+                  onClick={() => setStatusFilter(st.id)}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition ${
+                    isActive
+                      ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-400/30'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         <span className="text-xs text-slate-500 font-medium">
-          Showing {entries.length} Ledger Records
+          Showing {filteredEntries.length} {statusFilter ? `(${statusFilter})` : ''} of {entries.length} Ledger Records
         </span>
       </div>
 
@@ -232,10 +249,22 @@ export const HourLedgerPage: React.FC = () => {
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
             <p className="text-xs text-slate-500">Loading hours ledger...</p>
           </div>
-        ) : entries.length === 0 ? (
+        ) : filteredEntries.length === 0 ? (
           <div className="p-12 text-center text-slate-400">
             <Clock className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-semibold text-slate-700">No Volunteer Hour Entries Found</p>
+            <p className="text-sm font-semibold text-slate-700">
+              {statusFilter
+                ? `No records found for "${statusFilter}" status`
+                : 'No Volunteer Hour Entries Found'}
+            </p>
+            {statusFilter && (
+              <button
+                onClick={() => setStatusFilter('')}
+                className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-semibold"
+              >
+                Clear filter to show all records
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -255,11 +284,12 @@ export const HourLedgerPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {entries.map(row => {
-                  const isApproved = row.submission_status === 'approved';
-                  const isCorrected = row.submission_status === 'corrected';
-                  const isRejected = row.submission_status === 'rejected';
-                  const isPending = row.submission_status === 'pending';
+                {filteredEntries.map(row => {
+                  const statusNorm = (row.submission_status || '').trim().toLowerCase();
+                  const isApproved = statusNorm === 'approved';
+                  const isCorrected = statusNorm === 'corrected';
+                  const isRejected = statusNorm === 'rejected';
+                  const isPending = statusNorm === 'pending';
 
                   return (
                     <tr key={row.hour_entry_id} className="hover:bg-slate-50/70 transition">

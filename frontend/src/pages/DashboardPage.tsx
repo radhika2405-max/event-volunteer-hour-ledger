@@ -75,32 +75,53 @@ export const DashboardPage: React.FC = () => {
     hours: parseFloat(c.verified_hours_contributed) || 0,
   }));
 
-  const COLORS = ['#2563eb', '#d97706', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4'];
+  const COLORS = ['#e5b842', '#d97706', '#10b981', '#6366f1', '#ec4899', '#06b6d4'];
 
   return (
     <div className="space-y-8">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-navy-900 to-slate-800 text-white rounded-2xl p-6 sm:p-8 shadow-lg border border-slate-700/50">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-gold-500/20 text-gold-300 border border-gold-400/30">
-                School of Sciences • AADIKALA
+      <div className="bg-gradient-to-br from-[#0c0e14] via-[#141824] to-[#0c0e14] text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-amber-500/30 relative overflow-hidden">
+        {/* Subtle gold radial background glow */}
+        <div className="absolute -right-16 -top-16 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -left-16 -bottom-16 w-80 h-80 bg-yellow-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div className="flex items-start sm:items-center gap-5">
+            <div className="relative group shrink-0">
+              <img
+                src="/adikala-logo.png"
+                alt="Adikala - Izhaar Kala Ka"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-gold-400 shadow-[0_0_25px_rgba(229,184,66,0.45)] object-cover bg-black ring-4 ring-amber-400/20 transition-transform duration-300 group-hover:scale-105"
+              />
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-widest uppercase bg-gold-500 text-slate-950 shadow-sm whitespace-nowrap">
+                OFFICIAL
               </span>
-              <span className="text-xs text-slate-400">Academic Year 2025–2026</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Welcome, {user?.full_name}
-            </h1>
-            <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-              Track volunteer service hours, monitor event submissions, and verify certificate eligibility against configured academic thresholds.
-            </p>
+
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <span className="px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-gold-500/20 text-gold-300 border border-gold-400/30 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
+                  School of Sciences • ADIKALA
+                </span>
+                <span className="text-[11px] text-amber-200/80 font-medium tracking-widest uppercase">
+                  IZHAAR KALA KA
+                </span>
+                <span className="text-xs text-slate-400 hidden sm:inline">• Academic Year 2025–2026</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-white flex items-center gap-2">
+                Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500">{user?.full_name}</span>
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                Official Volunteer Honors & Hour Ledger for the School of Sciences. Tracking service contributions, verifying event timesheets, and certifying academic eligibility under <strong className="text-gold-300 font-semibold">ADIKALA</strong>.
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 self-start md:self-center shrink-0">
             <Link
               to="/reports/eligibility"
-              className="px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-slate-950 font-semibold text-sm shadow-md flex items-center gap-2 transition"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-950/40 flex items-center gap-2 transition transform hover:-translate-y-0.5"
             >
               <span>Eligibility Report</span>
               <ArrowRight className="w-4 h-4" />
@@ -206,7 +227,7 @@ export const DashboardPage: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Sub-Club Labor Contribution</h3>
-              <p className="text-xs text-slate-500">Verified hours contributed across AADIKALA wings</p>
+              <p className="text-xs text-slate-500">Verified hours contributed across ADIKALA wings</p>
             </div>
             <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">
               6 Sub-clubs

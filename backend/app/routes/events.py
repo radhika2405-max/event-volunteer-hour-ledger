@@ -36,7 +36,7 @@ def list_events():
 
             item = e.to_dict()
             item['volunteer_count'] = vol_count
-            item['approved_hours'] = round(approved_mins / 60.0, 2)
+            item['approved_hours'] = round(float(approved_mins or 0) / 60.0, 2)
             item['pending_submissions'] = pending_count
             results.append(item)
 

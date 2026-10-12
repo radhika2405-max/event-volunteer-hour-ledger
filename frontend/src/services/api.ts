@@ -34,8 +34,9 @@ export const isStaticDemo = typeof window !== 'undefined' && (
 
 // In-memory demo store initialized from seed data and persisted in localStorage
 function getDemoStore() {
-  const key = 'aadikala_demo_store_v1';
-  const saved = localStorage.getItem(key);
+  const key = 'adikala_demo_store_v1';
+  const legacyKey = 'aadikala_demo_store_v1';
+  const saved = localStorage.getItem(key) || localStorage.getItem(legacyKey);
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -47,7 +48,7 @@ function getDemoStore() {
 }
 
 function saveDemoStore(store: any) {
-  localStorage.setItem('aadikala_demo_store_v1', JSON.stringify(store));
+  localStorage.setItem('adikala_demo_store_v1', JSON.stringify(store));
 }
 
 async function request(endpoint: string, options: RequestInit = {}) {
@@ -110,6 +111,9 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
   const body = options.body ? JSON.parse(options.body as string) : {};
   const store = getDemoStore();
   const currentUser = getCurrentUser();
+
+  const [urlPath, queryString] = endpoint.split('?');
+  const queryParams = new URLSearchParams(queryString || '');
 
   // 1. Auth Login
   if (endpoint.startsWith('/auth/login') && method === 'POST') {
@@ -312,8 +316,27 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
   }
 
   // 9. Hours Ledger & Approvals
-  if (endpoint.startsWith('/hours') && method === 'GET') {
-    const items = store.hour_entries.map((h: any) => {
+  if ((urlPath === '/hours' || endpoint.startsWith('/hours')) && method === 'GET') {
+    const statusParam = (queryParams.get('status') || '').trim().toLowerCase();
+    const studentIdParam = queryParams.get('student_id');
+    const eventIdParam = queryParams.get('event_id');
+
+    let rawEntries = store.hour_entries;
+    if (statusParam) {
+      rawEntries = rawEntries.filter((h: any) => (h.submission_status || '').toLowerCase() === statusParam);
+    }
+    if (studentIdParam) {
+      const sId = parseInt(studentIdParam, 10);
+      const partIds = store.participations.filter((p: any) => p.student_id === sId).map((p: any) => p.participation_id);
+      rawEntries = rawEntries.filter((h: any) => partIds.includes(h.participation_id));
+    }
+    if (eventIdParam) {
+      const eId = parseInt(eventIdParam, 10);
+      const partIds = store.participations.filter((p: any) => p.event_id === eId).map((p: any) => p.participation_id);
+      rawEntries = rawEntries.filter((h: any) => partIds.includes(h.participation_id));
+    }
+
+    const items = rawEntries.map((h: any) => {
       const p = store.participations.find((item: any) => item.participation_id === h.participation_id);
       const s = store.students.find((item: any) => item.student_id === p?.student_id);
       const ev = store.events.find((item: any) => item.event_id === p?.event_id);
@@ -392,7 +415,7 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
     const policy = store.policies.find((p: any) => p.scope_type === 'all_events' && p.status === 'active') || store.policies[0];
     const thresholdHours = Math.round((policy.minimum_approved_minutes / 60.0) * 100) / 100;
 
-    const items = store.students.map((s: any) => {
+    let items = store.students.map((s: any) => {
       const parts = store.participations.filter((p: any) => p.student_id === s.student_id);
       const partIds = parts.map((p: any) => p.participation_id);
       const appMins = store.hour_entries
@@ -441,7 +464,7 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
     });
 
     // Check single student query
-    const matchStudent = endpoint.match(/\/eligibility\/(\d+)/);
+    const matchStudent = urlPath.match(/\/eligibility\/(\d+)/);
     if (matchStudent) {
       const sId = parseInt(matchStudent[1]);
       const found = items.find((item: any) => item.student_id === sId);
@@ -449,9 +472,79 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
       return found;
     }
 
+    // Multi-Criteria Filters:
+    const searchParam = (queryParams.get('search') || '').trim().toLowerCase();
+    if (searchParam) {
+      items = items.filter((x: any) =>
+        (x.student_name || '').toLowerCase().includes(searchParam) ||
+        (x.university_registration_number || '').toLowerCase().includes(searchParam)
+      );
+    }
+
+    const ayParam = (queryParams.get('academic_year') || '').trim();
+    if (ayParam) {
+      items = items.filter((x: any) => x.academic_year === ayParam);
+    }
+
+    const progParam = (queryParams.get('programme') || '').trim().toLowerCase();
+    if (progParam) {
+      items = items.filter((x: any) => (x.programme || '').trim().toLowerCase() === progParam);
+    }
+
+    const evIdParam = queryParams.get('event_id');
+    if (evIdParam) {
+      const eId = parseInt(evIdParam, 10);
+      const studentIdsInEvent = new Set(
+        store.participations.filter((p: any) => p.event_id === eId).map((p: any) => p.student_id)
+      );
+      items = items.filter((x: any) => studentIdsInEvent.has(x.student_id));
+    }
+
+    const clubIdParam = queryParams.get('club_id');
+    if (clubIdParam) {
+      const cId = parseInt(clubIdParam, 10);
+      const childClubs = store.clubs.filter((c: any) => c.parent_club_id === cId).map((c: any) => c.club_id);
+      const targetClubIds = new Set([cId, ...childClubs]);
+      const studentIdsInClub = new Set(
+        store.participations.filter((p: any) => targetClubIds.has(p.assigned_club_id)).map((p: any) => p.student_id)
+      );
+      items = items.filter((x: any) => studentIdsInClub.has(x.student_id));
+    }
+
+    const statusParam = (queryParams.get('status') || '').trim().toLowerCase();
+    if (statusParam) {
+      items = items.filter((x: any) => {
+        const itemState = (x.eligibility_state || '').trim().toLowerCase();
+        if (statusParam === 'eligible') {
+          return itemState.includes('eligible') || itemState === 'certificate issued';
+        }
+        if (statusParam === 'pending' || statusParam === 'pending hours review') {
+          return itemState === 'pending hours review';
+        }
+        if (statusParam === 'not eligible' || statusParam === 'ineligible') {
+          return itemState === 'not eligible';
+        }
+        if (statusParam === 'certificate issued' || statusParam === 'issued') {
+          return itemState === 'certificate issued';
+        }
+        if (statusParam === 'certificate revoked' || statusParam === 'revoked') {
+          return itemState === 'certificate revoked';
+        }
+        return itemState === statusParam;
+      });
+    }
+
+    const minHoursParam = queryParams.get('min_hours');
+    if (minHoursParam) {
+      const minH = parseFloat(minHoursParam);
+      if (!isNaN(minH)) {
+        items = items.filter((x: any) => (x.total_approved_hours || 0) >= minH);
+      }
+    }
+
     const summary = {
       total_students: items.length,
-      eligible_count: items.filter((x: any) => x.eligibility_state.includes('Eligible') || x.eligibility_state === 'Certificate Issued').length,
+      eligible_count: items.filter((x: any) => (x.eligibility_state || '').includes('Eligible') || x.eligibility_state === 'Certificate Issued').length,
       ineligible_count: items.filter((x: any) => x.eligibility_state === 'Not Eligible').length,
       pending_review_count: items.filter((x: any) => x.eligibility_state === 'Pending Hours Review').length,
       issued_count: items.filter((x: any) => x.eligibility_state === 'Certificate Issued').length,
@@ -461,7 +554,7 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
       report_metadata: {
         institution: 'CHRIST (Deemed to be University), Delhi NCR Campus',
         school: 'School of Sciences',
-        organization: 'AADIKALA Volunteer Honor Ledger',
+        organization: 'ADIKALA Volunteer Honor Ledger',
         generated_at: new Date().toISOString(),
       },
       summary,
@@ -477,7 +570,7 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
   if (endpoint === '/certificates/issue' && method === 'POST') {
     const sId = body.student_id;
     const student = store.students.find((s: any) => s.student_id === sId);
-    const certNum = `CHRIST/AADIKALA/2026/${String(sId).padStart(4, '0')}-${Math.floor(Math.random() * 9000 + 1000)}`;
+    const certNum = `CHRIST/ADIKALA/2026/${String(sId).padStart(4, '0')}-${Math.floor(Math.random() * 9000 + 1000)}`;
     const token = `tok_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
 
     const newCert = {
@@ -516,7 +609,7 @@ function handleDemoRequest(endpoint: string, options: RequestInit = {}): any {
       programme: cert.programme,
       institution: 'CHRIST (Deemed to be University), Delhi NCR Campus',
       school: 'School of Sciences',
-      organization: 'AADIKALA Volunteer Honor Ledger',
+      organization: 'ADIKALA Volunteer Honor Ledger',
       policy_name: cert.policy_name,
       verified_volunteer_hours: cert.eligibility_snapshot_hours,
       issued_at: cert.issued_at.slice(0, 10),
@@ -649,11 +742,13 @@ export const api = {
       const store = getDemoStore();
       const cert = store.certificates.find((c: any) => c.certificate_id === certId);
       if (cert) {
-        const html = `<!DOCTYPE html><html><head><title>Certificate - ${cert.certificate_number}</title><meta charset="utf-8"/><style>body{font-family:'Times New Roman',serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f8fafc;} .cert{width:800px;border:10px double #1e3a8a;padding:50px;text-align:center;background:#fff;box-shadow:0 10px 25px rgba(0,0,0,0.1);position:relative;border-radius:4px;} h1{color:#1e3a8a;font-size:28px;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase;} h2{color:#475569;font-size:15px;font-weight:600;margin-top:0;} .name{font-size:32px;font-weight:bold;color:#0f172a;margin:24px 0;border-bottom:2px solid #cbd5e1;display:inline-block;padding:0 30px;} p{font-size:15px;line-height:1.6;color:#334155;margin:16px auto;max-width:650px;} .meta{margin-top:35px;display:flex;justify-content:space-between;border-top:1px dashed #cbd5e1;padding-top:18px;font-size:13px;color:#64748b;font-family:sans-serif;} .badge{position:absolute;top:25px;right:25px;background:#10b981;color:#fff;padding:5px 12px;border-radius:20px;font-family:sans-serif;font-weight:bold;font-size:11px;} .print-btn{margin-top:25px;padding:10px 24px;background:#1e3a8a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:sans-serif;font-weight:600;} @media print{.print-btn{display:none;}}</style></head><body><div class="cert"><div class="badge">${cert.certificate_status.toUpperCase()}</div><h1>CHRIST (Deemed to be University)</h1><h2>Delhi NCR Campus | School of Sciences | AADIKALA</h2><div style="margin-top:15px;font-style:italic;color:#64748b;font-size:16px;">Certificate of Volunteer Honors</div><div class="name">${cert.student_name}</div><p>This is to certify that <strong>${cert.student_name}</strong> (${cert.programme}) has successfully completed <strong>${cert.eligibility_snapshot_hours} hours</strong> of verified volunteer service across institutional initiatives under the <em>${cert.policy_name}</em>.</p><div class="meta" style="text-align:left;"><div><strong>Registration No:</strong> ${cert.registration_number}<br><strong>Certificate No:</strong> ${cert.certificate_number}</div><div style="text-align:right;"><strong>Status:</strong> ${cert.certificate_status.toUpperCase()}<br><strong>Issued Date:</strong> ${cert.issued_at.slice(0, 10)}<br><strong>Verification Token:</strong> ${cert.verification_token.slice(0, 16)}...</div></div><div><button class="print-btn" onclick="window.print()">Print Certificate / Save as PDF</button></div></div></body></html>`;
+        const html = `<!DOCTYPE html><html><head><title>Certificate - ${cert.certificate_number}</title><meta charset="utf-8"/><style>body{font-family:'Times New Roman',serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f8fafc;} .cert{width:800px;border:10px double #1e3a8a;padding:50px;text-align:center;background:#fff;box-shadow:0 10px 25px rgba(0,0,0,0.1);position:relative;border-radius:4px;} h1{color:#1e3a8a;font-size:28px;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase;} h2{color:#475569;font-size:15px;font-weight:600;margin-top:0;} .name{font-size:32px;font-weight:bold;color:#0f172a;margin:24px 0;border-bottom:2px solid #cbd5e1;display:inline-block;padding:0 30px;} p{font-size:15px;line-height:1.6;color:#334155;margin:16px auto;max-width:650px;} .meta{margin-top:35px;display:flex;justify-content:space-between;border-top:1px dashed #cbd5e1;padding-top:18px;font-size:13px;color:#64748b;font-family:sans-serif;} .badge{position:absolute;top:25px;right:25px;background:#10b981;color:#fff;padding:5px 12px;border-radius:20px;font-family:sans-serif;font-weight:bold;font-size:11px;} .print-btn{margin-top:25px;padding:10px 24px;background:#1e3a8a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:sans-serif;font-weight:600;} @media print{.print-btn{display:none;}}</style></head><body><div class="cert"><div class="badge">${cert.certificate_status.toUpperCase()}</div><h1>CHRIST (Deemed to be University)</h1><h2>Delhi NCR Campus | School of Sciences | ADIKALA</h2><div style="margin-top:15px;font-style:italic;color:#64748b;font-size:16px;">Certificate of Volunteer Honors</div><div class="name">${cert.student_name}</div><p>This is to certify that <strong>${cert.student_name}</strong> (${cert.programme}) has successfully completed <strong>${cert.eligibility_snapshot_hours} hours</strong> of verified volunteer service across institutional initiatives under the <em>${cert.policy_name}</em>.</p><div class="meta" style="text-align:left;"><div><strong>Registration No:</strong> ${cert.registration_number}<br><strong>Certificate No:</strong> ${cert.certificate_number}</div><div style="text-align:right;"><strong>Status:</strong> ${cert.certificate_status.toUpperCase()}<br><strong>Issued Date:</strong> ${cert.issued_at.slice(0, 10)}<br><strong>Verification Token:</strong> ${cert.verification_token.slice(0, 16)}...</div></div><div><button class="print-btn" onclick="window.print()">Print Certificate / Save as PDF</button></div></div></body></html>`;
         return URL.createObjectURL(new Blob([html], { type: 'text/html' }));
       }
     }
-    return `/api/v1/certificates/${certId}/download`;
+    const token = getToken();
+    const q = token ? `?token=${encodeURIComponent(token)}` : '';
+    return `/api/v1/certificates/${certId}/download${q}`;
   },
   publicVerifyCertificate: (token: string) => request(`/certificates/verify/${token}`),
   revokeCertificate: (certId: number, reason: string) =>

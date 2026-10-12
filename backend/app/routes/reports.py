@@ -52,8 +52,8 @@ def certificate_eligibility_report():
         params['academic_year'] = academic_year
 
     if programme:
-        sql += " AND ce.programme = :programme"
-        params['programme'] = programme
+        sql += " AND LOWER(ce.programme) = LOWER(:programme)"
+        params['programme'] = programme.strip()
 
     if min_hours:
         try:
@@ -63,24 +63,45 @@ def certificate_eligibility_report():
             pass
 
     if status_filter:
-        sql += " AND ce.eligibility_state = :status_filter"
-        params['status_filter'] = status_filter
+        sf_clean = status_filter.strip().lower()
+        if sf_clean == 'eligible':
+            sql += " AND (ce.eligibility_state LIKE 'Eligible%' OR ce.eligibility_state = 'Certificate Issued')"
+        elif sf_clean in ['pending', 'pending hours review']:
+            sql += " AND ce.eligibility_state = 'Pending Hours Review'"
+        elif sf_clean in ['not eligible', 'ineligible']:
+            sql += " AND ce.eligibility_state = 'Not Eligible'"
+        elif sf_clean in ['certificate issued', 'issued']:
+            sql += " AND ce.eligibility_state = 'Certificate Issued'"
+        elif sf_clean in ['certificate revoked', 'revoked']:
+            sql += " AND ce.eligibility_state = 'Certificate Revoked'"
+        else:
+            sql += " AND LOWER(ce.eligibility_state) = LOWER(:status_filter)"
+            params['status_filter'] = status_filter.strip()
 
     if search:
-        sql += " AND (ce.student_name LIKE :search OR ce.university_registration_number LIKE :search)"
-        params['search'] = f"%{search}%"
+        search_clean = search.strip().lower()
+        sql += " AND (LOWER(ce.student_name) LIKE :search OR LOWER(ce.university_registration_number) LIKE :search)"
+        params['search'] = f"%{search_clean}%"
 
     if event_id:
-        sql += """ AND ce.student_id IN (
-            SELECT ev.student_id FROM event_volunteers ev WHERE ev.event_id = :event_id
-        )"""
-        params['event_id'] = int(event_id)
+        try:
+            sql += """ AND ce.student_id IN (
+                SELECT ev.student_id FROM event_volunteers ev WHERE ev.event_id = :event_id
+            )"""
+            params['event_id'] = int(event_id)
+        except ValueError:
+            pass
 
     if club_id:
-        sql += """ AND ce.student_id IN (
-            SELECT ev.student_id FROM event_volunteers ev WHERE ev.assigned_club_id = :club_id
-        )"""
-        params['club_id'] = int(club_id)
+        try:
+            sql += """ AND ce.student_id IN (
+                SELECT ev.student_id FROM event_volunteers ev
+                JOIN clubs c ON ev.assigned_club_id = c.club_id
+                WHERE c.club_id = :club_id OR c.parent_club_id = :club_id
+            )"""
+            params['club_id'] = int(club_id)
+        except ValueError:
+            pass
 
     sql += " ORDER BY ce.total_approved_hours DESC, ce.student_name ASC"
 
@@ -132,7 +153,7 @@ def certificate_eligibility_report():
             'report_metadata': {
                 'institution': 'CHRIST (Deemed to be University), Delhi NCR Campus',
                 'school': 'School of Sciences',
-                'organization': 'AADIKALA Volunteer Honor Ledger',
+                'organization': 'ADIKALA Volunteer Honor Ledger',
                 'generated_at': datetime.utcnow().isoformat() + 'Z'
             },
             'summary': summary,

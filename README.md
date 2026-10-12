@@ -147,3 +147,21 @@ Using `SUM(CASE WHEN submission_status IN ('approved', 'corrected') THEN verifie
 
 ### Q9: Why cannot pending hours count toward certificate eligibility?
 **Ans:** Pending hours represent proposed work that has not undergone verification by authorized faculty. Allowing unreviewed hours to count would compromise institutional standards and reward unverified claims.
+
+---
+
+## 11. Academic PDF & Research Deliverables
+
+The project includes pre-compiled, publication-grade academic PDF documents in `docs/outputs/`:
+
+1. **`Event_Volunteer_Hour_Ledger_Research_Poster.pdf`**: Publication-grade Academic Conference Research Poster (A1 Landscape: 841mm x 594mm / 2384pt x 1684pt).
+2. **`Event_Volunteer_Hour_Ledger_Presentation.pdf`**: Complete 12-slide presentation deck with structured speaker notes and Viva Voce defense guide.
+3. **`Event_Volunteer_Hour_Ledger_Academic_Project_Report.pdf`**: Formal 18-section academic project report following CHRIST University format (Certificate of approval, 3NF normalization, ER diagrams, 10 table schema, 5 views, triggers, ACID proof, analytical queries).
+4. **`docs/poster.html`**: Interactive, responsive, printable web research poster for browser display, projectors, and ultra-high-DPI printing (`Ctrl + P`).
+
+To re-generate all PDFs from source:
+```bash
+python docs/generate_poster_pdf.py
+python docs/generate_presentation_pdf.py
+python docs/generate_report_pdf.py
+```

@@ -67,18 +67,20 @@ export const PublicVerificationPage: React.FC = () => {
         {/* Verification Card */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
           {/* Header */}
-          <div className="bg-slate-900 text-white p-6 sm:p-8 text-center relative overflow-hidden">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-gold-500 to-gold-400 flex items-center justify-center text-slate-950 font-bold text-2xl shadow-lg mb-3">
-              C
-            </div>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight">
+          <div className="bg-slate-900 text-white p-6 sm:p-8 text-center relative overflow-hidden border-b border-gold-500/20">
+            <img
+              src="/adikala-logo.png"
+              alt="Adikala - Izhaar Kala Ka"
+              className="mx-auto w-16 h-16 rounded-full border-2 border-gold-400 shadow-[0_0_18px_rgba(229,184,66,0.45)] object-cover bg-black mb-3 ring-4 ring-amber-400/20"
+            />
+            <h1 className="text-lg sm:text-xl font-serif font-bold tracking-tight text-white">
               CHRIST (Deemed to be University)
             </h1>
             <p className="text-xs text-gold-400 font-semibold uppercase tracking-wider mt-0.5">
               Delhi NCR Campus • School of Sciences
             </p>
-            <p className="text-xs text-slate-300 mt-1">
-              AADIKALA Volunteer Honor Ledger • Credential Verification
+            <p className="text-xs text-amber-200/90 font-medium tracking-wide mt-1">
+              ADIKALA (IZHAAR KALA KA) Volunteer Honor Ledger • Credential Verification
             </p>
           </div>
 
@@ -178,7 +180,7 @@ export const PublicVerificationPage: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-slate-500 font-medium">Issuing Body</p>
-                        <p className="font-medium text-slate-700 mt-0.5">School of Sciences & AADIKALA</p>
+                        <p className="font-medium text-slate-700 mt-0.5">School of Sciences & ADIKALA</p>
                       </div>
                     </div>
                   </div>

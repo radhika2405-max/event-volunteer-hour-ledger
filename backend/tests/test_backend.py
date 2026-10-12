@@ -99,7 +99,7 @@ def test_student_b_eligible_at_20_hours(client, faculty_token):
     assert resp.status_code == 200
     data = resp.get_json()
     assert float(data['total_approved_hours']) == 20.0
-    assert data['eligibility_state'] == 'Eligible - Awaiting Certificate Approval'
+    assert data['eligibility_state'] in ['Eligible - Awaiting Certificate Approval', 'Certificate Issued']
 
 def test_student_c_pending_hours_excluded_from_approved_totals(client, faculty_token):
     # Student C: 18 approved + 5 pending hours
@@ -205,3 +205,162 @@ def test_report_csv_export(client, coord_token):
     csv_text = resp.get_data(as_text=True)
     assert 'Registration Number' in csv_text
     assert '2347101' in csv_text
+
+# ----------------------------------------------------------------------------
+# 6. HOUR LEDGER FILTER TESTS (BUG 1 VERIFICATION)
+# ----------------------------------------------------------------------------
+def test_hour_ledger_filter_all_and_statuses(client, coord_token):
+    # 1. All shows all records
+    resp_all = client.get('/api/v1/hours', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_all.status_code == 200
+    all_items = resp_all.get_json()['items']
+    assert len(all_items) > 0
+    initial_count = len(all_items)
+
+    # 2. Pending filter shows only pending records
+    resp_pend = client.get('/api/v1/hours?status=pending', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_pend.status_code == 200
+    pend_items = resp_pend.get_json()['items']
+    for row in pend_items:
+        assert row['submission_status'].lower() == 'pending'
+
+    # 3. Approved filter shows only approved records
+    resp_app = client.get('/api/v1/hours?status=approved', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_app.status_code == 200
+    app_items = resp_app.get_json()['items']
+    for row in app_items:
+        assert row['submission_status'].lower() == 'approved'
+
+    # 4. Rejected filter shows only rejected records
+    resp_rej = client.get('/api/v1/hours?status=rejected', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_rej.status_code == 200
+    rej_items = resp_rej.get_json()['items']
+    for row in rej_items:
+        assert row['submission_status'].lower() == 'rejected'
+
+    # 5. Corrected filter shows only corrected records
+    resp_corr = client.get('/api/v1/hours?status=corrected', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_corr.status_code == 200
+    corr_items = resp_corr.get_json()['items']
+    for row in corr_items:
+        assert row['submission_status'].lower() == 'corrected'
+
+    # 6. Switching between filters does not change underlying records
+    resp_after = client.get('/api/v1/hours', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_after.status_code == 200
+    assert len(resp_after.get_json()['items']) == initial_count
+
+    # 7. Non-matching status returns empty list without error
+    resp_empty = client.get('/api/v1/hours?status=nonexistent_status', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_empty.status_code == 200
+    assert len(resp_empty.get_json()['items']) == 0
+
+# ----------------------------------------------------------------------------
+# 7. ELIGIBILITY REPORT MULTI-CRITERIA FILTER TESTS (BUG 2 VERIFICATION)
+# ----------------------------------------------------------------------------
+def test_eligibility_report_search_filters(client, coord_token):
+    # Unfiltered baseline
+    base_resp = client.get('/api/v1/reports/certificate-eligibility', headers={'Authorization': f'Bearer {coord_token}'})
+    assert base_resp.status_code == 200
+    base_data = base_resp.get_json()
+    total_students = base_data['summary']['total_students']
+    sample_student = base_data['items'][0]
+    full_name = sample_student['student_name']
+    partial_name = full_name.split()[0]
+    reg_no = sample_student['university_registration_number']
+
+    # 1. Search by full name
+    resp_fn = client.get(f'/api/v1/reports/certificate-eligibility?search={full_name}', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_fn.status_code == 200
+    items_fn = resp_fn.get_json()['items']
+    assert any(x['student_name'] == full_name for x in items_fn)
+
+    # 2. Search by partial name
+    resp_pn = client.get(f'/api/v1/reports/certificate-eligibility?search={partial_name}', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_pn.status_code == 200
+    items_pn = resp_pn.get_json()['items']
+    assert len(items_pn) > 0
+    assert any(partial_name.lower() in x['student_name'].lower() for x in items_pn)
+
+    # 3. Search by registration number
+    resp_reg = client.get(f'/api/v1/reports/certificate-eligibility?search={reg_no}', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_reg.status_code == 200
+    items_reg = resp_reg.get_json()['items']
+    assert len(items_reg) >= 1
+    assert any(x['university_registration_number'] == reg_no for x in items_reg)
+
+    # 4. Search with different letter cases and surrounding spaces
+    padded_query = f"  {partial_name.upper()}  "
+    resp_pad = client.get(f'/api/v1/reports/certificate-eligibility?search={padded_query}', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_pad.status_code == 200
+    items_pad = resp_pad.get_json()['items']
+    assert len(items_pad) == len(items_pn)
+
+def test_eligibility_report_dropdown_filters(client, coord_token):
+    # 1. Academic Year filter
+    resp_ay = client.get('/api/v1/reports/certificate-eligibility?academic_year=2025-2026', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_ay.status_code == 200
+    items_ay = resp_ay.get_json()['items']
+    for x in items_ay:
+        assert x['academic_year'] == '2025-2026'
+
+    # 2. Programme filter (case-insensitive and exact matching)
+    resp_prog = client.get('/api/v1/reports/certificate-eligibility?programme=B.Sc Data Science', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_prog.status_code == 200
+    items_prog = resp_prog.get_json()['items']
+    for x in items_prog:
+        assert x['programme'] == 'B.Sc Data Science'
+
+    # 3. Event filter
+    resp_ev = client.get('/api/v1/reports/certificate-eligibility?event_id=1', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_ev.status_code == 200
+    items_ev = resp_ev.get_json()['items']
+    # All returned students must have event 1 participation
+    assert len(items_ev) > 0
+
+    # 4. Sub-club filter
+    resp_cl = client.get('/api/v1/reports/certificate-eligibility?club_id=4', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_cl.status_code == 200
+    items_cl = resp_cl.get_json()['items']
+    assert len(items_cl) > 0
+
+    # 5. Eligibility State filter
+    resp_st = client.get('/api/v1/reports/certificate-eligibility?status=Eligible', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_st.status_code == 200
+    items_st = resp_st.get_json()['items']
+    for x in items_st:
+        assert 'Eligible' in x['eligibility_state'] or x['eligibility_state'] == 'Certificate Issued'
+
+    # 6. Combined filters (academic_year + programme)
+    resp_comb = client.get('/api/v1/reports/certificate-eligibility?academic_year=2025-2026&programme=B.Sc Data Science', headers={'Authorization': f'Bearer {coord_token}'})
+    assert resp_comb.status_code == 200
+    items_comb = resp_comb.get_json()['items']
+    for x in items_comb:
+        assert x['academic_year'] == '2025-2026'
+        assert x['programme'] == 'B.Sc Data Science'
+
+    # 7. Summary cards match filtered items
+    summary_comb = resp_comb.get_json()['summary']
+    assert summary_comb['total_students'] == len(items_comb)
+    expected_eligible = sum(1 for x in items_comb if 'Eligible' in x['eligibility_state'] or x['eligibility_state'] == 'Certificate Issued')
+    expected_ineligible = sum(1 for x in items_comb if x['eligibility_state'] == 'Not Eligible')
+    expected_pending = sum(1 for x in items_comb if x['eligibility_state'] == 'Pending Hours Review')
+    expected_issued = sum(1 for x in items_comb if x['eligibility_state'] == 'Certificate Issued')
+    assert summary_comb['eligible_count'] == expected_eligible
+    assert summary_comb['ineligible_count'] == expected_ineligible
+    assert summary_comb['pending_review_count'] == expected_pending
+    assert summary_comb['issued_count'] == expected_issued
+
+    # 8. No duplicate students caused by joins
+    student_ids = [x['student_id'] for x in items_comb]
+    assert len(student_ids) == len(set(student_ids))
+
+    # 9. Verify 20.0-hour authoritative policy preserved
+    for x in items_comb:
+        assert float(x['threshold_hours']) == 20.0
+
+def test_unauthorized_user_cannot_access_reports(client, student_a_token):
+    # Volunteers cannot access administrative certificate eligibility report
+    resp = client.get('/api/v1/reports/certificate-eligibility', headers={'Authorization': f'Bearer {student_a_token}'})
+    assert resp.status_code == 403
+

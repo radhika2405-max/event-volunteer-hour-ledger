@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { 
   FileSpreadsheet, Download, Printer, Search, Filter, 
   CheckCircle2, XCircle, Clock, Award, ShieldAlert, RefreshCw, 
@@ -14,6 +14,7 @@ export const EligibilityReportPage: React.FC = () => {
 
   // Filter state
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [academicYear, setAcademicYear] = useState('');
   const [programme, setProgramme] = useState('');
   const [status, setStatus] = useState('');
@@ -28,11 +29,20 @@ export const EligibilityReportPage: React.FC = () => {
   const user = getCurrentUser();
   const canIssue = ['admin', 'approver'].includes(user?.role);
 
+  // Debounce search text (300ms) to ensure smooth typing while maintaining live updates
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const fetchReport = async () => {
     try {
       setLoading(true);
       const params: Record<string, string> = {};
-      if (search) params.search = search;
+      const cleanSearch = (debouncedSearch || '').trim();
+      if (cleanSearch) params.search = cleanSearch;
       if (academicYear) params.academic_year = academicYear;
       if (programme) params.programme = programme;
       if (status) params.status = status;
@@ -65,15 +75,16 @@ export const EligibilityReportPage: React.FC = () => {
 
   useEffect(() => {
     fetchReport();
-  }, [academicYear, programme, status, eventId, clubId, minHours]);
+  }, [debouncedSearch, academicYear, programme, status, eventId, clubId, minHours]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchReport();
+    setDebouncedSearch(search);
   };
 
   const handleResetFilters = () => {
     setSearch('');
+    setDebouncedSearch('');
     setAcademicYear('');
     setProgramme('');
     setStatus('');
@@ -141,7 +152,16 @@ export const EligibilityReportPage: React.FC = () => {
   };
 
   const items = reportData?.items || [];
-  const summary = reportData?.summary || { total_students: 0, eligible_count: 0, ineligible_count: 0, pending_review_count: 0, issued_count: 0 };
+  const summary = useMemo(() => {
+    if (reportData?.summary) return reportData.summary;
+    return {
+      total_students: items.length,
+      eligible_count: items.filter((x: any) => (x.eligibility_state || '').includes('Eligible') || x.eligibility_state === 'Certificate Issued').length,
+      ineligible_count: items.filter((x: any) => x.eligibility_state === 'Not Eligible').length,
+      pending_review_count: items.filter((x: any) => x.eligibility_state === 'Pending Hours Review').length,
+      issued_count: items.filter((x: any) => x.eligibility_state === 'Certificate Issued').length,
+    };
+  }, [reportData, items]);
   const metadata = reportData?.report_metadata;
 
   return (

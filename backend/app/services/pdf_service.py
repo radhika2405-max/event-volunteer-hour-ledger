@@ -170,7 +170,7 @@ def generate_certificate_pdf(certificate_data):
     elements.append(Spacer(1, 10))
     elements.append(Paragraph("CHRIST (DEEMED TO BE UNIVERSITY)", institution_style))
     elements.append(Paragraph("DELHI NCR CAMPUS | SCHOOL OF SCIENCES", sub_inst_style))
-    elements.append(Paragraph("AADIKALA — Cultural, Technological & Performing Arts Council", sub_inst_style))
+    elements.append(Paragraph("ADIKALA (IZHAAR KALA KA) — Cultural, Technological & Performing Arts Council", sub_inst_style))
     elements.append(Spacer(1, 18))
 
     # Certificate Title
@@ -204,7 +204,7 @@ def generate_certificate_pdf(certificate_data):
     elements.append(Spacer(1, 24))
 
     # Signatures & Verification Block
-    cert_no = certificate_data.get('certificate_number', 'CHRIST/AADIKALA/2026/0001')
+    cert_no = certificate_data.get('certificate_number', 'CHRIST/ADIKALA/2026/0001')
     issue_date = certificate_data.get('issued_at', '2026-03-25')
     if isinstance(issue_date, str) and 'T' in issue_date:
         issue_date = issue_date.split('T')[0]

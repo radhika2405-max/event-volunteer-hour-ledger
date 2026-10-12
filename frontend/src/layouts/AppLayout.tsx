@@ -42,22 +42,25 @@ export const AppLayout: React.FC = () => {
       {/* Sidebar for Desktop */}
       <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-white shrink-0 shadow-xl border-r border-slate-800">
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-800/80 bg-slate-950/40">
+        <div className="p-5 border-b border-slate-800/80 bg-slate-950/60">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-lg text-slate-950 font-bold text-xl">
-              C
-            </div>
-            <div>
-              <h2 className="font-bold text-sm tracking-wide text-white">CHRIST UNIVERSITY</h2>
-              <p className="text-[10px] text-gold-400 font-medium tracking-wider uppercase">Delhi NCR • Sciences</p>
+            <img
+              src="/adikala-logo.png"
+              alt="Adikala - Izhaar Kala Ka"
+              className="w-12 h-12 rounded-full border-2 border-gold-400 shadow-[0_0_15px_rgba(229,184,66,0.4)] object-cover bg-black shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <h2 className="font-serif font-bold text-sm tracking-wider text-gold-300">ADIKALA</h2>
+              <p className="text-[10px] text-amber-200/80 font-semibold tracking-widest uppercase">IZHAAR KALA KA</p>
+              <p className="text-[9px] text-slate-400 tracking-wide uppercase truncate">CHRIST NCR • Sciences</p>
             </div>
           </div>
-          <div className="mt-4 px-2.5 py-1.5 rounded bg-slate-800/60 border border-slate-700/50 flex items-center justify-between text-xs">
-            <span className="text-slate-300 font-semibold flex items-center gap-1.5">
+          <div className="mt-4 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-gold-500/30 flex items-center justify-between text-xs shadow-inner">
+            <span className="text-gold-200 font-semibold flex items-center gap-1.5 text-[11px] tracking-wide">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              AADIKALA LEDGER
+              ADIKALA LEDGER
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">v1.0</span>
+            <span className="text-[10px] text-gold-400/80 font-mono">v1.0</span>
           </div>
         </div>
 
@@ -72,11 +75,11 @@ export const AppLayout: React.FC = () => {
                 to={item.path}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   active
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-900/30 font-semibold'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-gradient-to-r from-gold-500/25 via-amber-500/15 to-slate-800/40 text-gold-200 border-l-4 border-gold-400 shadow-md shadow-gold-950/40 font-semibold'
+                    : 'text-slate-300 hover:bg-slate-800/70 hover:text-gold-200'
                 } ${item.highlight && !active ? 'border border-gold-500/30 text-gold-300 bg-gold-950/20' : ''}`}
               >
-                <Icon className={`w-4 h-4 ${active ? 'text-white' : item.highlight ? 'text-gold-400' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 ${active ? 'text-gold-400' : item.highlight ? 'text-gold-400' : 'text-slate-400'}`} />
                 <span className="flex-1">{item.name}</span>
                 {item.highlight && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-gold-500/20 text-gold-300 uppercase font-semibold">
@@ -92,7 +95,7 @@ export const AppLayout: React.FC = () => {
         <div className="p-3 border-t border-slate-800/80">
           <Link
             to="/verify"
-            className="flex items-center gap-2 px-3 py-2 text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+            className="flex items-center gap-2 px-3 py-2 text-xs text-slate-400 hover:text-gold-200 hover:bg-slate-800/70 rounded-lg transition"
           >
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <span>Public Verification Portal</span>
@@ -101,9 +104,9 @@ export const AppLayout: React.FC = () => {
         </div>
 
         {/* User Card */}
-        <div className="p-4 border-t border-slate-800/80 bg-slate-950/30">
+        <div className="p-4 border-t border-slate-800/80 bg-slate-950/40">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center font-bold text-gold-400 border border-slate-700">
+            <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center font-bold text-gold-400 border border-gold-500/40 shadow-sm">
               {user.full_name?.charAt(0) || 'U'}
             </div>
             <div className="flex-1 min-w-0">
@@ -129,15 +132,20 @@ export const AppLayout: React.FC = () => {
       </aside>
 
       {/* Mobile Top Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 text-white border-b border-slate-800">
+      <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 text-white border-b border-gold-500/20 shadow-md">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded bg-gold-500 flex items-center justify-center text-slate-950 font-bold text-sm">
-            C
+          <img
+            src="/adikala-logo.png"
+            alt="Adikala Logo"
+            className="w-9 h-9 rounded-full border border-gold-400 object-cover bg-black shadow"
+          />
+          <div>
+            <span className="font-serif font-bold text-sm text-gold-300 block leading-tight">ADIKALA LEDGER</span>
+            <p className="text-[9px] text-amber-200/80 font-semibold tracking-widest uppercase">IZHAAR KALA KA</p>
           </div>
-          <span className="font-bold text-sm">CHRIST • AADIKALA LEDGER</span>
         </div>
         <button onClick={() => setMobileOpen(!mobileOpen)} className="p-1 text-slate-300">
-          {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 text-gold-400" />}
         </button>
       </div>
 
@@ -167,18 +175,20 @@ export const AppLayout: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {/* Academic Institutional Banner Bar */}
-        <header className="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between shrink-0 shadow-sm">
-          <div className="flex items-center gap-2 text-xs text-slate-600">
-            <GraduationCap className="w-4 h-4 text-blue-700" />
-            <span className="font-semibold text-slate-800">CHRIST (Deemed to be University)</span>
-            <span className="text-slate-400">•</span>
+        <header className="bg-slate-900 border-b border-gold-500/20 px-6 py-3 flex items-center justify-between shrink-0 shadow-sm">
+          <div className="flex items-center gap-2 text-xs text-slate-300">
+            <GraduationCap className="w-4 h-4 text-gold-400 shrink-0" />
+            <span className="font-semibold text-white">CHRIST (Deemed to be University)</span>
+            <span className="text-gold-500/40">•</span>
             <span>Delhi NCR Campus</span>
-            <span className="text-slate-400">•</span>
-            <span className="text-blue-900 font-medium">School of Sciences</span>
+            <span className="text-gold-500/40">•</span>
+            <span className="text-gold-300 font-medium">School of Sciences</span>
+            <span className="text-gold-500/40 hidden lg:inline">•</span>
+            <span className="hidden lg:inline text-amber-200/90 font-semibold tracking-wider text-[11px]">ADIKALA (IZHAAR KALA KA)</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-900 border border-amber-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gold-950/60 text-gold-300 border border-gold-400/40 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse"></span>
               Threshold: 20 Verified Hours
             </span>
           </div>
