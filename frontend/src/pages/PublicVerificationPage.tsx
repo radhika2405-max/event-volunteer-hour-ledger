@@ -5,6 +5,7 @@ import {
   Award, GraduationCap, ArrowLeft, Building2, Calendar, Clock 
 } from 'lucide-react';
 import { api } from '../services/api';
+import adikalaLogo from '../assets/adikala-logo.png';
 
 export const PublicVerificationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -71,9 +72,16 @@ export const PublicVerificationPage: React.FC = () => {
           {/* Header */}
           <div className="bg-slate-900 text-white p-6 sm:p-8 text-center relative overflow-hidden border-b border-gold-500/20">
             <img
-              src="/adikala-logo.png"
+              src={adikalaLogo}
               alt="Adikala - Izhaar Kala Ka"
               className="mx-auto w-16 h-16 rounded-full border-2 border-gold-400 shadow-[0_0_18px_rgba(229,184,66,0.45)] object-cover bg-black mb-3 ring-4 ring-amber-400/20"
+              onError={(e) => {
+                const el = e.currentTarget;
+                if (!el.dataset.fallback) {
+                  el.dataset.fallback = '1';
+                  el.src = './adikala-logo.png';
+                }
+              }}
             />
             <h1 className="text-lg sm:text-xl font-serif font-bold tracking-tight text-white">
               CHRIST (Deemed to be University)

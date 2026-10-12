@@ -4,6 +4,7 @@ import {
   Settings, Clock, FileText, XCircle, ChevronRight, X, Eye, Printer 
 } from 'lucide-react';
 import { api, getCurrentUser } from '../services/api';
+import adikalaLogo from '../assets/adikala-logo.png';
 
 export const CertificatesPage: React.FC = () => {
   const [certificates, setCertificates] = useState<any[]>([]);
@@ -399,9 +400,16 @@ export const CertificatesPage: React.FC = () => {
               {/* Official Adikala Circular Logo */}
               <div className="flex justify-center my-2">
                 <img
-                  src="/adikala-logo.png"
+                  src={adikalaLogo}
                   alt="Adikala - Izhaar Kala Ka"
                   className="w-16 h-16 rounded-full border-2 border-gold-400 shadow-[0_0_15px_rgba(229,184,66,0.4)] object-cover bg-black ring-4 ring-amber-400/20"
+                  onError={(e) => {
+                    const el = e.currentTarget;
+                    if (!el.dataset.fallback) {
+                      el.dataset.fallback = '1';
+                      el.src = './adikala-logo.png';
+                    }
+                  }}
                 />
               </div>
 

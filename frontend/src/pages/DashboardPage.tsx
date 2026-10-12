@@ -9,6 +9,7 @@ import {
   PieChart, Pie, Cell, CartesianGrid, Legend 
 } from 'recharts';
 import { Link } from 'react-router-dom';
+import adikalaLogo from '../assets/adikala-logo.png';
 
 export const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
@@ -89,9 +90,16 @@ export const DashboardPage: React.FC = () => {
           <div className="flex items-start sm:items-center gap-5">
             <div className="relative group shrink-0">
               <img
-                src="/adikala-logo.png"
+                src={adikalaLogo}
                 alt="Adikala - Izhaar Kala Ka"
                 className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-gold-400 shadow-[0_0_25px_rgba(229,184,66,0.45)] object-cover bg-black ring-4 ring-amber-400/20 transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  const el = e.currentTarget;
+                  if (!el.dataset.fallback) {
+                    el.dataset.fallback = '1';
+                    el.src = './adikala-logo.png';
+                  }
+                }}
               />
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-widest uppercase bg-gold-500 text-slate-950 shadow-sm whitespace-nowrap">
                 OFFICIAL

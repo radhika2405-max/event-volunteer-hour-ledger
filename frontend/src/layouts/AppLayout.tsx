@@ -5,6 +5,7 @@ import {
   FileSpreadsheet, ShieldAlert, CheckCircle2, LogOut, Menu, X, ExternalLink, GraduationCap
 } from 'lucide-react';
 import { getCurrentUser, api } from '../services/api';
+import adikalaLogo from '../assets/adikala-logo.png';
 
 export const AppLayout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -45,9 +46,16 @@ export const AppLayout: React.FC = () => {
         <div className="p-5 border-b border-slate-800/80 bg-slate-950/60">
           <div className="flex items-center gap-3">
             <img
-              src="/adikala-logo.png"
+              src={adikalaLogo}
               alt="Adikala - Izhaar Kala Ka"
               className="w-12 h-12 rounded-full border-2 border-gold-400 shadow-[0_0_15px_rgba(229,184,66,0.4)] object-cover bg-black shrink-0"
+              onError={(e) => {
+                const el = e.currentTarget;
+                if (!el.dataset.fallback) {
+                  el.dataset.fallback = '1';
+                  el.src = './adikala-logo.png';
+                }
+              }}
             />
             <div className="min-w-0 flex-1">
               <h2 className="font-serif font-bold text-sm tracking-wider text-gold-300">ADIKALA</h2>
@@ -135,9 +143,16 @@ export const AppLayout: React.FC = () => {
       <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 text-white border-b border-gold-500/20 shadow-md">
         <div className="flex items-center gap-2.5">
           <img
-            src="/adikala-logo.png"
+            src={adikalaLogo}
             alt="Adikala Logo"
             className="w-9 h-9 rounded-full border border-gold-400 object-cover bg-black shadow"
+            onError={(e) => {
+              const el = e.currentTarget;
+              if (!el.dataset.fallback) {
+                el.dataset.fallback = '1';
+                el.src = './adikala-logo.png';
+              }
+            }}
           />
           <div>
             <span className="font-serif font-bold text-sm text-gold-300 block leading-tight">ADIKALA LEDGER</span>
