@@ -468,11 +468,11 @@ export const EligibilityReportPage: React.FC = () => {
                               {row.certificate_number}
                             </span>
                             <a
-                              href={`/api/v1/certificates/verify/${row.verification_token}`}
+                              href={`#/verify?token=${row.verification_token}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="p-1 text-blue-600 hover:text-blue-800"
-                              title="Verify Certificate"
+                              className="p-1 text-emerald-600 hover:text-emerald-800"
+                              title="Open Public Verification"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
                             </a>

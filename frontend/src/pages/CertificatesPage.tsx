@@ -90,7 +90,7 @@ export const CertificatesPage: React.FC = () => {
         </div>
 
         <a
-          href="/verify"
+          href="#/verify"
           target="_blank"
           rel="noreferrer"
           className="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-2 shadow-sm transition"
@@ -244,7 +244,7 @@ export const CertificatesPage: React.FC = () => {
                           )}
 
                           <a
-                            href={`/verify?token=${c.verification_token}`}
+                            href={`#/verify?token=${c.verification_token}`}
                             target="_blank"
                             rel="noreferrer"
                             className="p-1 text-slate-500 hover:text-emerald-700"
@@ -455,7 +455,7 @@ export const CertificatesPage: React.FC = () => {
             {/* Modal Actions */}
             <div className="flex items-center justify-between pt-2">
               <a
-                href={`/verify?token=${previewCert.verification_token}`}
+                href={`#/verify?token=${previewCert.verification_token}`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-xs text-emerald-700 hover:underline flex items-center gap-1 font-semibold"

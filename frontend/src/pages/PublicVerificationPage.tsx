@@ -8,7 +8,9 @@ import { api } from '../services/api';
 
 export const PublicVerificationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const tokenParam = searchParams.get('token') || '';
+  const urlToken = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') : null;
+  const hashToken = searchParams.get('token');
+  const tokenParam = hashToken || urlToken || '';
 
   const [inputToken, setInputToken] = useState(tokenParam);
   const [result, setResult] = useState<any | null>(null);
